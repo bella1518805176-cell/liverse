@@ -1,0 +1,19 @@
+# Local work and generated caches
+/tmp/
+node_modules/
+dist/
+build/
+coverage/
+.DS_Store
+Thumbs.db
+*.log
+
+# Credentials and local configuration
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+private.*.json
+project.private.config.json
+.idea/
