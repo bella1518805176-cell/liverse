@@ -70,7 +70,16 @@ function IconButton({
     </button>
   );
 }
-export function PreviewApp() {
+export function PreviewApp({
+  demoLayout,
+  images = {
+    live: "/assets/beijing-live.jpg",
+    balcony: "/assets/beijing-balcony.jpg",
+  },
+}: {
+  demoLayout?: Layout;
+  images?: { live: string; balcony: string };
+} = {}) {
   const [tab, setTab] = useState<Tab>("home"),
     [layout, setLayout] = useState<Layout | null>(null),
     [loading, setLoading] = useState(true),
@@ -87,6 +96,7 @@ export function PreviewApp() {
     [activeCompare, setActiveCompare] = useState(0),
     [replace, setReplace] = useState<PositionRef | null>(null),
     [toast, setToast] = useState(""),
+    [shareUrl, setShareUrl] = useState(""),
     [row, setRow] = useState(""),
     [seat, setSeat] = useState(""),
     [showSaved, setShowSaved] = useState(false),
@@ -101,8 +111,9 @@ export function PreviewApp() {
     setLoading(true);
     setError("");
     try {
-      const venues =
-        await api<Array<{ id: string; layout: Layout | null }>>("/venues");
+      const venues = demoLayout
+        ? [{ id: demoLayout.venueId, layout: demoLayout }]
+        : await api<Array<{ id: string; layout: Layout | null }>>("/venues");
       const l = venues.find((v) => v.id === "beijing")?.layout ?? null;
       setLayout(l);
       if (l) setFloor(l.floors[0]);
@@ -115,9 +126,13 @@ export function PreviewApp() {
           const sharedLayout =
             l?.id === p.layoutVersionId
               ? l
-              : await api<Layout>(
-                  `/layouts/${encodeURIComponent(p.layoutVersionId)}`,
-                );
+              : demoLayout
+                ? (() => {
+                    throw new Error("该位置不属于当前体验版本");
+                  })()
+                : await api<Layout>(
+                    `/layouts/${encodeURIComponent(p.layoutVersionId)}`,
+                  );
           const resolved = resolvePosition(sharedLayout, p);
           setLayout(sharedLayout);
           setFloor(
@@ -129,9 +144,11 @@ export function PreviewApp() {
           notify(`无法打开分享位置：${(e as Error).message}`);
         }
       }
-      const result = await api<{ items: PublicContent[] }>(
-        "/contributions?venueId=beijing",
-      );
+      const result = demoLayout
+        ? { items: [] }
+        : await api<{ items: PublicContent[] }>(
+            "/contributions?venueId=beijing",
+          );
       setContents(result.items);
     } catch (e) {
       setError((e as Error).message);
@@ -203,9 +220,11 @@ export function PreviewApp() {
       <div className="preview-desktop-mark">
         <span>LIVERSE</span>
         <span>观演视野 / 北京</span>
-        <a href="/">
-          运营工作台 <ArrowUpRight size={14} />
-        </a>
+        {!demoLayout && (
+          <a href="/">
+            运营工作台 <ArrowUpRight size={14} />
+          </a>
+        )}
       </div>
       <main className={`preview ${tab === "map" ? "map-mode" : ""}`}>
         <div className="p-top">
@@ -238,10 +257,7 @@ export function PreviewApp() {
             {tab === "home" && (
               <>
                 <section className="p-hero">
-                  <img
-                    src="/assets/beijing-live.jpg"
-                    alt="北京 LIVERSE 宣传资料现场画面"
-                  />
+                  <img src={images.live} alt="北京 LIVERSE 宣传资料现场画面" />
                   <div className="p-hero-overlay">
                     <span className="p-kicker">BEIJING · LIVE SPACE</span>
                     <h1>LIVERSE 北京</h1>
@@ -298,10 +314,7 @@ export function PreviewApp() {
                     </button>
                   </div>
                   <div className="p-reference">
-                    <img
-                      src="/assets/beijing-balcony.jpg"
-                      alt="场馆宣传资料二层座席区"
-                    />
+                    <img src={images.balcony} alt="场馆宣传资料二层座席区" />
                     <span>场馆参考 · 二层座席区</span>
                   </div>
                 </section>
@@ -495,7 +508,18 @@ export function PreviewApp() {
                           await navigator.clipboard.writeText(url.href);
                           notify("位置链接已复制");
                         } catch {
-                          notify("请在微信小程序中使用原生分享");
+                          if (navigator.share) {
+                            try {
+                              await navigator.share({
+                                title: "LIVERSE · 观演视野",
+                                url: url.href,
+                              });
+                            } catch {
+                              notify("分享已取消");
+                            }
+                          } else {
+                            setShareUrl(url.href);
+                          }
                         }
                       }}
                     >
@@ -716,6 +740,25 @@ export function PreviewApp() {
             {toast}
           </div>
         )}
+        {shareUrl && (
+          <div className="p-modal-backdrop">
+            <div className="p-modal" role="dialog" aria-label="分享位置链接">
+              <div className="p-heading">
+                <h2>分享位置</h2>
+                <IconButton label="关闭分享" onClick={() => setShareUrl("")}>
+                  <X size={18} />
+                </IconButton>
+              </div>
+              <input
+                aria-label="位置链接"
+                readOnly
+                value={shareUrl}
+                onFocus={(e) => e.currentTarget.select()}
+                style={{ width: "100%", boxSizing: "border-box" }}
+              />
+            </div>
+          </div>
+        )}
         {replace && (
           <div className="p-modal-backdrop">
             <div className="p-modal">
@@ -742,7 +785,9 @@ export function PreviewApp() {
         )}
       </main>
       <div className="preview-desktop-caption">
-        <span>原生微信小程序 · 浏览器交互预览</span>
+        <span>
+          {demoLayout ? "LIVERSE · 体验版" : "原生微信小程序 · 浏览器交互预览"}
+        </span>
         <span>资料类型始终可见 / 不提供订座或售票</span>
       </div>
     </div>
