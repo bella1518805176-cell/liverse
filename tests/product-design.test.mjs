@@ -46,3 +46,57 @@ test('new document and README local links resolve within the project', () => {
     }
   }
 });
+
+test('delivery packages cover all P0 requirements without unknown references', () => {
+  const requirements = rows
+    .filter((line) => /^\| FR-\d+ \|/.test(line))
+    .map((line) => line.split('|').slice(1, -1).map((cell) => cell.trim()));
+  const knownIds = new Set(requirements.map(([id]) => id));
+  const packages = rows.filter((line) => /^\| PK-[A-Z]+ \|/.test(line));
+  assert.ok(packages.length > 0, 'No delivery packages found');
+  const covered = new Set();
+  const packageIds = new Set();
+  for (const line of packages) {
+    const [, id, references, deliverables, dependencies] = line.split('|').map((cell) => cell.trim());
+    assert.ok(!packageIds.has(id), `Duplicate package ${id}`);
+    packageIds.add(id);
+    assert.ok(deliverables && dependencies, `${id}: missing scope or dependencies`);
+    const ids = references.match(/FR-\d+/g) ?? [];
+    assert.ok(ids.length > 0, `${id}: no requirements`);
+    for (const reference of ids) {
+      assert.ok(knownIds.has(reference), `${id}: unknown requirement ${reference}`);
+      covered.add(reference);
+    }
+  }
+  for (const [id, priority] of requirements) {
+    if (priority === 'P0') assert.ok(covered.has(id), `${id}: missing delivery package`);
+  }
+});
+
+test('identity and product metrics matrices have unique IDs and complete rules', () => {
+  for (const prefix of ['AU', 'KPI']) {
+    const matrixRows = rows.filter((line) => new RegExp(`^\\| ${prefix}-\\d+ \\|`).test(line));
+    assert.ok(matrixRows.length > 0, `${prefix}: no rules found`);
+    const ids = new Set();
+    for (const line of matrixRows) {
+      const cells = line.split('|').slice(1, -1).map((cell) => cell.trim());
+      assert.ok(cells.every(Boolean), `${prefix}: missing rule or measurement definition`);
+      assert.ok(!ids.has(cells[0]), `Duplicate rule ${cells[0]}`);
+      ids.add(cells[0]);
+    }
+  }
+});
+
+test('unconfirmed venue measurements remain blank in the material register', () => {
+  const register = document.split('### 15.1 场馆资料登记')[1]?.split('### 15.2')[0];
+  assert.ok(register, 'Missing venue material register');
+  const materials = register.split(/\r?\n/)
+    .filter((line) => line.startsWith('|') && !line.startsWith('|---') && !line.startsWith('| 资料项'));
+  assert.ok(materials.length > 0, 'No material entries found');
+  for (const line of materials) {
+    const [material, ...pending] = line.split('|').slice(1, -1).map((cell) => cell.trim());
+    assert.ok(material);
+    assert.equal(pending.length, 3);
+    assert.ok(pending.every((cell) => cell === ''), `${material}: unconfirmed value filled in`);
+  }
+});
