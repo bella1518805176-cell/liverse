@@ -1,0 +1,39 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/photos/index",
+    "pages/me/index",
+    "pages/content/index",
+    "pages/submit/index",
+    "pages/records/index",
+    "pages/tickets/index",
+    "pages/privacy/index"
+  ],
+  "subPackages": [
+    {
+      "root": "subpackages/venue",
+      "pages": ["map/index", "preview/index", "compare/index"]
+    }
+  ],
+  "window": {
+    "navigationBarBackgroundColor": "#0B0D10",
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "LIVERSE",
+    "backgroundColor": "#0B0D10",
+    "backgroundTextStyle": "light"
+  },
+  "tabBar": {
+    "color": "#92989F",
+    "selectedColor": "#FF5018",
+    "backgroundColor": "#111418",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "看座" },
+      { "pagePath": "pages/photos/index", "text": "实拍" },
+      { "pagePath": "pages/me/index", "text": "我的" }
+    ]
+  },
+  "style": "v2",
+  "lazyCodeLoading": "requiredComponents",
+  "sitemapLocation": "sitemap.json"
+}

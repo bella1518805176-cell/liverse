@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "CommonJS",
+    "moduleResolution": "Node",
+    "outDir": "../../build/api",
+    "rootDir": "../..",
+    "types": ["node", "multer"]
+  },
+  "include": ["src", "../../packages/contracts", "../../packages/venue-core"],
+  "exclude": ["node_modules"]
+}

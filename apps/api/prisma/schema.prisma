@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model Venue {
+  id              String @id
+  name            String
+  currentLayoutId String?
+  layouts         LayoutVersion[]
+  events          Event[]
+}
+model LayoutVersion {
+  id            String @id
+  venueId       String
+  venue         Venue @relation(fields: [venueId], references: [id])
+  status        String @default("draft")
+  data          Json
+  revision      Int @default(0)
+  createdAt     DateTime @default(now())
+  contributions Contribution[]
+  favorites     Favorite[]
+  @@unique([id, venueId])
+  @@index([venueId, status])
+}
+model Event {
+  id            String @id
+  venueId       String
+  venue         Venue @relation(fields: [venueId], references: [id])
+  name          String
+  localDate     String
+  timezone      String @default("Asia/Shanghai")
+  contributions Contribution[]
+  @@unique([id, venueId])
+}
+model User {
+  id            String @id @default(cuid())
+  wechatKey     String @unique
+  displayName   String @default("观众")
+  disabled      Boolean @default(false)
+  sessions      Session[]
+  favorites     Favorite[]
+  contributions Contribution[]
+  media         Media[]
+  helpful       Helpful[]
+  tickets       Ticket[]
+}
+model Session {
+  id          String @id @default(cuid())
+  familyId    String
+  accessHash  String @unique
+  refreshHash String @unique
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+  expiresAt   DateTime
+  refreshUntil DateTime
+  revoked     Boolean @default(false)
+  @@index([userId, familyId])
+}
+model Favorite {
+  id        String @id @default(cuid())
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+  layoutId  String
+  layout    LayoutVersion @relation(fields: [layoutId], references: [id])
+  key       String
+  position  Json
+  createdAt DateTime @default(now())
+  @@unique([userId, key])
+}
+model Contribution {
+  id          String @id @default(cuid())
+  userId      String
+  user        User @relation(fields: [userId], references: [id])
+  venueId     String
+  layoutId    String
+  layout      LayoutVersion @relation(fields: [layoutId, venueId], references: [id, venueId])
+  eventId     String?
+  event       Event? @relation(fields: [eventId, venueId], references: [id, venueId])
+  position    Json
+  text        String
+  tags        String[]
+  displayName String
+  source      String @default("user")
+  state       String @default("pending")
+  device      String?
+  zoom        String?
+  shotDate    String?
+  reason      String @default("")
+  consentAt   DateTime
+  createdAt   DateTime @default(now())
+  revision    Int @default(0)
+  media       Media[]
+  helpful     Helpful[]
+  @@index([state, createdAt, id])
+  @@index([userId, createdAt, id])
+}
+model Media {
+  id             String @id @default(cuid())
+  userId         String
+  user           User @relation(fields: [userId], references: [id])
+  objectKey      String @unique
+  derivedKey     String?
+  state          String @default("created")
+  contributionId String?
+  contribution   Contribution? @relation(fields: [contributionId], references: [id])
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+model Helpful {
+  userId         String
+  user           User @relation(fields: [userId], references: [id])
+  contributionId String
+  contribution   Contribution @relation(fields: [contributionId], references: [id])
+  @@id([userId, contributionId])
+}
+model Ticket {
+  id        String @id @default(cuid())
+  userId    String
+  user      User @relation(fields: [userId], references: [id])
+  category  String
+  text      String
+  targetId  String?
+  status    String @default("received")
+  reply     String @default("")
+  revision  Int @default(0)
+  createdAt DateTime @default(now())
+  @@index([userId, createdAt, id])
+}
+model Admin {
+  id           String @id @default(cuid())
+  username     String @unique
+  passwordHash String
+  role         String
+  totpSecret   String?
+  sessions     AdminSession[]
+}
+model AdminSession {
+  hash      String @id
+  adminId   String
+  admin     Admin @relation(fields: [adminId], references: [id])
+  csrf      String
+  expiresAt DateTime
+}
+model AuditLog {
+  id        String @id @default(cuid())
+  actorId   String
+  action    String
+  targetId  String
+  summary   Json
+  createdAt DateTime @default(now())
+  @@index([createdAt, id])
+}
+model Idempotency {
+  id          String @id @default(cuid())
+  actorId     String
+  operation   String
+  key         String
+  requestHash String
+  response    Json
+  createdAt   DateTime @default(now())
+  @@unique([actorId, operation, key])
+}
+model Job {
+  id          String @id @default(cuid())
+  kind        String
+  targetId    String
+  state       String @default("queued")
+  attempts    Int @default(0)
+  availableAt DateTime @default(now())
+  leaseUntil  DateTime?
+  leaseToken  String?
+  error       String?
+  createdAt   DateTime @default(now())
+  @@index([state, availableAt])
+}

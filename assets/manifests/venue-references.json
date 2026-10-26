@@ -1,0 +1,10 @@
+{
+  "venueId": "beijing",
+  "source": "VI/Liverse_Beijing_Venue Introduction CHN 2026 v3(1)(1).pdf",
+  "usage": "Internal development venue reference only; publication requires rights confirmation and region calibration",
+  "assets": [
+    { "path": "beijing-live.jpg", "page": 13, "type": "venue-reference", "positionAccuracy": "venue" },
+    { "path": "beijing-balcony.jpg", "page": 14, "type": "venue-reference", "positionAccuracy": "venue" },
+    { "path": "beijing-stage.jpg", "page": 15, "type": "venue-reference", "positionAccuracy": "venue" }
+  ]
+}

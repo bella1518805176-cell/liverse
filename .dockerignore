@@ -1,0 +1,12 @@
+node_modules
+.git
+.env
+.env.*
+.local
+tmp
+output
+VI
+dist
+build
+test-results
+playwright-report

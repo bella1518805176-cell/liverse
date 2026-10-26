@@ -1,27 +1,75 @@
-# LIVERSE
+# LIVERSE 观演视野
 
-北京 LIVERSE 场馆座位视野小程序。
+北京 LIVERSE 原生微信小程序、NestJS API、图片 Worker 与 React 运营后台。当前交付为可运行的开发版本，正式场馆坐标、模型校准、微信与腾讯云联调和真机验收尚未完成。
 
-## 项目方向
+## 本地运行
 
-- 原生微信小程序作为主要交互入口。
-- 2D 座位选择、3D 观演视角、现场实拍和位置收藏。
-- 场馆尺寸、逐排逐座数据及遮挡结构，待与主办方确认后补充。
+需要 Node.js 24、pnpm 11.25.0。仓库不含真实凭据；复制 `.env.example` 为本机 `.env` 并填写配置。开发数据库可使用内置 PostgreSQL，无需 Docker。
 
-## 当前资料
+```powershell
+pnpm install --frozen-lockfile
+pnpm db:generate
+pnpm db:local
+```
 
-- [产品设计文档](docs/product-design.md)：首版范围、页面流程、验收及待补充资料。
-- [技术方案](docs/technical-design.md)：技术栈、工程结构、渲染、后端、部署和测试策略。
-- `output/ui/`：现有 UI 设计方案与方向图。
-- `VI/`：场馆介绍参考资料。
-- `tmp/`：本地临时处理文件，不提交到 Git。
+保持数据库进程运行，在另一终端执行：
 
-当前处于设计与资料准备阶段，尚未初始化小程序工程。
+```powershell
+pnpm db:migrate
+pnpm db:seed
+pnpm dev
+```
+
+开发预览：`http://127.0.0.1:5173/?preview=1`；运营后台：`http://127.0.0.1:5173/`；API 文档：`http://127.0.0.1:3000/api/docs`。浏览器预览用于验证选位与视角交互，不替代原生小程序或真机验证。
+
+示例编号：楼层「示例 1F」、排「D01」、号「01」。示例不是正式场馆排座；数据库不自动生成场次、用户投稿、互动数量或运营账号。
+
+## 微信开发者工具
+
+```powershell
+pnpm build:mini
+```
+
+导入 `dist/miniprogram`。默认游客 AppID 可用于开发工具检查部分公开页面；微信登录、上传权限和真机预览需真实 AppID。开发工具本机调试需关闭合法域名校验；真机请配置 `MINI_API_BASE` 指向可访问的 HTTPS API。修改配置后重新构建。首页、实拍、我的为主包；地图、视野、对比为分包。
+
+正式构建运行 `pnpm exec tsx scripts/build-mini.ts --production`，必须设置 `MINI_APP_ID` 和 HTTPS `MINI_API_BASE`。构建拒绝缺失配置和示例依赖；服务端另行拒绝正式环境发布示例布局。
+
+## 运营账号
+
+无默认账号或默认密码。设置临时环境变量后运行一次性命令：
+
+```powershell
+$env:ADMIN_USERNAME = 'your_operator'
+$env:ADMIN_PASSWORD = 'a-unique-password-at-least-14-characters'
+$env:ADMIN_ROLE = 'system'
+pnpm admin:create
+Remove-Item Env:ADMIN_PASSWORD
+```
+
+角色为 `content`（审核、官方资料及工单）、`layout`（布局）和 `system`（全部）。生产账号还必须配置 `ADMIN_TOTP_SECRET`。后台 Cookie 会话、Origin 和 CSRF 校验均由 API 执行。
 
 ## 验证
 
-使用 Node.js 24 或更新的兼容版本，无需安装依赖：
-
-```shell
-node --test tests/*.test.mjs
+```powershell
+pnpm test
+pnpm build
+pnpm test:e2e
+pnpm audit --audit-level=low
 ```
+
+单元和接口测试自动启动独立 PostgreSQL 55433，执行真实迁移并清理。浏览器测试需要本机开发库和服务，使用已安装的 Chrome；真实运营测试只在指定本机数据库中创建临时测试账号和投稿，完成后清理。截图输出到 `output/verification/`。
+
+## 工程目录
+
+- `apps/miniprogram`：原生 TypeScript、WXML、WXSS 页面与微信能力封装。
+- `apps/api`：公开／个人／运营 API、Prisma 迁移、私有媒体处理及 Worker。
+- `apps/admin`：内容审核、官方资料录入、布局发布、工单和操作记录。
+- `packages/contracts`、`packages/venue-core`：共享校验、位置、坐标、对比与相机计算。
+- `packages/venue-renderer`：Three.js r133 示例场景与渲染生命周期。
+- `fixtures`：仅开发使用的示例布局。
+- `assets`：有来源登记的开发参考影像。
+- `infra`：Docker 与 PostgreSQL 部署参考。
+
+## 交付边界
+
+[实施与验证记录](docs/implementation.md)列出已实现能力、方案差异及未验证项。[产品设计文档](docs/product-design.md)和[技术方案](docs/technical-design.md)保留为设计基线；正式上线须补齐真实资产、主体与域名、微信授权、运营政策和真机报告，不应把开发示例作为公众可用的真实看座服务。

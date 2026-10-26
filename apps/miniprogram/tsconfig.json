@@ -1,0 +1,14 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "types": ["miniprogram-api-typings"],
+    "emitDecoratorMetadata": false
+  },
+  "include": [
+    "src",
+    "../../packages/contracts",
+    "../../packages/venue-core",
+    "../../packages/venue-renderer",
+    "../../fixtures"
+  ]
+}

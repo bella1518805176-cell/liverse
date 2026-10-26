@@ -1,6 +1,7 @@
 # Local work and generated caches
 /tmp/
 node_modules/
+.pnpm-store/
 dist/
 build/
 coverage/
@@ -16,4 +17,7 @@ Thumbs.db
 *.key
 private.*.json
 project.private.config.json
+.local/
+test-results/
+playwright-report/
 .idea/
