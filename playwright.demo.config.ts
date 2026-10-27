@@ -4,7 +4,7 @@ export default defineConfig({
   workers: 1,
   timeout: 45000,
   use: {
-    baseURL: "http://127.0.0.1:4173",
+    baseURL: process.env.DEMO_BASE_URL ?? "http://127.0.0.1:4173",
     launchOptions: {
       channel: "chrome",
       args: [
@@ -23,9 +23,11 @@ export default defineConfig({
       use: { ...devices["iPhone 13"], defaultBrowserType: "chromium" },
     },
   ],
-  webServer: {
-    command: "pnpm demo",
-    url: "http://127.0.0.1:4173",
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: process.env.DEMO_BASE_URL
+    ? undefined
+    : {
+        command: "pnpm demo",
+        url: "http://127.0.0.1:4173",
+        reuseExistingServer: !process.env.CI,
+      },
 });

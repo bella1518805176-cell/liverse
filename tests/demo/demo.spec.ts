@@ -21,28 +21,32 @@ test("standalone visitor can select, inspect, compare and share without a backen
       configurable: true,
     });
   });
-  await page.goto("/");
+  await page.goto("./");
   await expect(
     page.getByRole("heading", { name: "LIVERSE 北京" }),
   ).toBeVisible();
   await expect(page.getByText("运营工作台", { exact: true })).toHaveCount(0);
-  expect(
-    await page
-      .locator(".p-logo")
-      .evaluate((element) => getComputedStyle(element).color),
-  ).toBe("rgb(245, 246, 247)");
+  await expect
+    .poll(() =>
+      page
+        .locator(".p-logo")
+        .evaluate((element) => getComputedStyle(element).color),
+    )
+    .toBe("rgb(245, 246, 247)");
   expect(
     await page
       .locator("body")
       .evaluate((element) => getComputedStyle(element).margin),
   ).toBe("0px");
-  expect(
-    await page
-      .locator(".p-hero img")
-      .evaluate(
-        (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
-      ),
-  ).toBe(true);
+  await expect
+    .poll(() =>
+      page
+        .locator(".p-hero img")
+        .evaluate(
+          (image: HTMLImageElement) => image.complete && image.naturalWidth > 0,
+        ),
+    )
+    .toBe(true);
   await page.getByRole("button", { name: "进入看座" }).click();
   await page.getByRole("textbox", { name: "排号" }).fill("D01");
   await page.getByRole("textbox", { name: "座号" }).fill("01");
@@ -102,7 +106,7 @@ test("standalone visitor can select, inspect, compare and share without a backen
     page.getByRole("heading", { name: "示例 1F · D01 排 01 号" }),
   ).toBeVisible();
   await expect(canvas).toBeVisible();
-  await page.goto("/");
+  await page.goto("./");
   await page.reload();
   await page.getByRole("button", { name: "我的", exact: true }).click();
   await page.getByRole("button", { name: "全部收藏", exact: true }).click();
@@ -112,6 +116,10 @@ test("standalone visitor can select, inspect, compare and share without a backen
 });
 
 test("public demo server exposes only static assets", async ({ request }) => {
+  test.skip(
+    !!process.env.DEMO_BASE_URL,
+    "Local static server contract is tested separately from the managed hosting gateway",
+  );
   for (const path of [
     "/api/v1/admin/me",
     "/api/v1/health",

@@ -1,0 +1,13 @@
+{
+  "appId": "app_17gv6eymhad",
+  "branch": "sprint/default",
+  "onlineUrl": "https://miracleplus.feishu.link/app/app_17gv6eymhad",
+  "releaseId": "7701164809568750623",
+  "commitId": "53c2b6275462e30b72ce0c6d6cdc31fe77759e2e",
+  "requireLogin": false,
+  "assetExpiresAt": "2026-11-26T02:03:36Z",
+  "images": {
+    "live": "https://dataloom-dalvfwwy.feishucdn.com/1179667522/bucket_aadk4acccp2ao/1880166508842035.jpg?sign=1795658616-3320f74e98-b4e4eca797dd4dd181619d1d26398113-6d1491c5cf523925ab816b008901050f",
+    "balcony": "https://dataloom-dalvfwwy.feishucdn.com/1179667522/bucket_aadk4acccp2ao/1880166506423316.jpg?sign=1795658668-7af8385dfc-b4e4eca797dd4dd181619d1d26398113-027232773b574363260f91972d172e15"
+  }
+}
