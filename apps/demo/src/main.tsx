@@ -100,7 +100,7 @@ function App() {
       {view === "2D" ? <>
         <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "769" : "408"} 个已读取座位</span></div>
         <div className="map-stage" aria-label={`${floor} 座位图`}>
-          <div className="map-transform" style={{ transform: `scale(${zoom})` }}>
+          <div className={`map-transform ${zoom >= 1.4 ? "zoomed" : ""}`} style={{ transform: `scale(${zoom})` }}>
             <svg viewBox={floor === "1F" ? "0 0 1000 920" : "0 0 1000 650"} role="img" aria-label={`${floor} 座位分布示意图`}>
               <defs><pattern id="map-grid" width="28" height="28" patternUnits="userSpaceOnUse"><path d="M 28 0 L 0 0 0 28" fill="none" stroke="#edf0ee" strokeWidth="1" /></pattern></defs>
               <rect width="1000" height={floor === "1F" ? 920 : 650} fill="url(#map-grid)" />
@@ -117,7 +117,7 @@ function App() {
                 const active = selected?.floor === seat.floor && selected.row === seat.row && selected.number === seat.number;
                 const x = floor === "1F" ? seat.x : seat.x;
                 return <g key={`${seat.floor}-${seat.row}-${seat.number}`} className={`seat ${active ? "selected" : ""}`} role="button" tabIndex={0} aria-label={`${seat.floor}${seat.area} ${seat.row}排${seat.number}号`} onClick={() => setSelected(seat)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelected(seat); }}>
-                  <circle cx={x} cy={seat.y} r={floor === "1F" ? 6 : 7} /><title>{seat.row}排{seat.number}号</title>
+                  <circle cx={x} cy={seat.y} r={floor === "1F" ? 6 : 7} /><text className="seat-number" x={x} y={seat.y + 3}>{seat.number}</text><title>{seat.row}排{seat.number}号</title>
                 </g>;
               })}
               {Array.from({ length: floor === "1F" ? 23 : 12 }, (_, i) => <text key={i} className="row-label" x="130" y={floor === "1F" ? (i < 12 ? 154 + i * 25 : i < 19 ? 514 + (i - 12) * 27 : 784 + (i - 19) * 31) : 152 + i * 34}>{i + 1}</text>)}
@@ -125,7 +125,7 @@ function App() {
             </svg>
           </div>
         </div>
-        <div className="map-footer"><span><i className="legend-seat" />可选位置</span><span><i className="legend-selected" />当前选择</span><div className="map-tools"><button aria-label="缩小" onClick={() => setZoom(Math.max(0.8, zoom - 0.15))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button aria-label="放大" onClick={() => setZoom(Math.min(1.8, zoom + 0.15))}><Plus size={15} /></button><button aria-label="复位" onClick={() => setZoom(1)}><RotateCcw size={14} /></button></div></div>
+        <div className="map-footer"><span><i className="legend-seat" />可选位置</span><span><i className="legend-selected" />当前选择</span><div className="map-tools"><button aria-label="缩小" onClick={() => setZoom(Math.max(0.8, zoom - 0.15))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button aria-label="放大" onClick={() => setZoom(Math.min(2.5, zoom + 0.15))}><Plus size={15} /></button><button aria-label="复位" onClick={() => setZoom(1)}><RotateCcw size={14} /></button></div></div>
         {floor === "1F" && <div className="data-note"><span>!</span><p>图纸标注 1184 座，当前可读 1177 个编号；1F 中区有 7 个编号待核对。</p><strong>数据说明</strong></div>}
       </> : <>
         <div className="map-meta"><span>3D 视图 <em>预览占位</em></span><span className="map-count">{camera}</span></div>

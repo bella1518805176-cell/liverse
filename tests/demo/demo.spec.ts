@@ -35,9 +35,15 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await page.getByRole("button", { name: "回到 2D 座位图" }).click();
   await expect(page.locator(".floor-toggle button").nth(1)).toHaveClass(/active/);
   await expect(page.getByRole("button", { name: "2F固定坐席 1排1号" })).toHaveClass(/selected/);
+  await page.getByRole("button", { name: "放大" }).click();
+  await page.getByRole("button", { name: "放大" }).click();
+  await page.getByRole("button", { name: "放大" }).click();
+  await expect(page.locator(".seat-number").first()).toBeVisible();
+  await page.getByRole("button", { name: "复位" }).click();
 
   await page.getByRole("button", { name: "清除选择" }).click();
   await expect(page.getByText("尚未选择位置")).toBeVisible();
+  await expect(page.locator(".seat.selected")).toHaveCount(0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: `output/verification/shanghai-demo-${testInfo.project.name}.png`, fullPage: true });
   expect(errors).toEqual([]);
