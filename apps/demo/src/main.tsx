@@ -9,7 +9,7 @@ type CameraMode = "场馆总览" | "观众视角" | "手机取景";
 type Seat = { floor: Floor; area: string; row: number; number: number; x: number; y: number };
 
 const fixedRows = [
-  [6, 23], [9, 17, 8], [10, 17, 10], [10, 17, 10], [11, 17, 11], [11, 17, 11],
+  [6, 17, 6], [9, 17, 8], [10, 17, 10], [10, 17, 10], [11, 17, 11], [11, 17, 11],
   [11, 17, 11], [11, 17, 11], [11, 17, 11], [10, 17, 10], [6, 17, 6], [5, 5],
 ].map((groups, index) => ({ groups, row: index + 1 }));
 
@@ -18,24 +18,34 @@ function buildSeats(floor: Floor): Seat[] {
     return fixedRows.flatMap(({ groups, row }) => {
       const seats: Seat[] = [];
       let number = 1;
+      const total = groups.reduce((sum, group) => sum + group, 0);
+      const spacing = 20;
+      const sectionGap = 60;
+      const width = (total - groups.length) * spacing + (groups.length - 1) * sectionGap;
+      let x = 500 - width / 2;
       groups.forEach((count, groupIndex) => {
         for (let i = 0; i < count; i += 1) {
-          const total = groups.reduce((sum, group) => sum + group, 0);
-          const x = 500 + (number - (total + 1) / 2) * 20 + groupIndex * 24;
           seats.push({ floor, area: "固定坐席", row, number, x, y: 118 + row * 34 });
           number += 1;
+          x += spacing;
         }
+        if (groupIndex < groups.length - 1) x += sectionGap - spacing;
       });
       return seats;
     });
   }
   return [
     ...Array.from({ length: 12 }, (_, i) => ({ row: i + 1, count: 40, area: "前区", y: 150 + i * 25 })),
-    ...Array.from({ length: 7 }, (_, i) => ({ row: i + 13, count: 31, area: "中区", y: 510 + i * 27 })),
+    ...Array.from({ length: 7 }, (_, i) => ({ row: i + 13, count: 32, area: "中区", y: 510 + i * 27 })),
+    ...Array.from({ length: 4 }, (_, i) => ({ row: i + 20, count: 24, area: "后区", y: 780 + i * 31 })),
   ].flatMap(({ row, count, area, y }) => Array.from({ length: count }, (_, i) => {
-    const gap = area === "前区" ? 0 : 18;
-    const splitAt = Math.ceil(count / 2);
-    const x = 500 + (i - (count - 1) / 2) * 18 + (i >= splitAt ? gap : 0);
+    const splitAt = area === "前区" ? count : count / 2;
+    const spacing = 18;
+    const x = area === "前区"
+      ? 500 + (i - (count - 1) / 2) * spacing
+      : i < splitAt
+        ? 140 + i * spacing
+        : (area === "中区" ? 590 : 582) + (i - splitAt) * spacing;
     return { floor, area, row, number: i + 1, x, y };
   }));
 }
@@ -82,7 +92,7 @@ function App() {
 
     <section className="page-heading">
       <div><p className="eyebrow">SEATING EXPLORER <span>上海</span></p><h1>找到你的现场位置</h1></div>
-      <div className="current-layout"><span className="layout-dot" /><div><strong>全坐席（有过道）1184</strong><small>{show} · 演示场次</small></div><CircleHelp size={16} /></div>
+      <div className="current-layout"><span className="layout-dot" /><div><strong>全坐席1208</strong><small>{show} · 演示场次</small></div><CircleHelp size={16} /></div>
     </section>
 
     <section className="controls-row">
@@ -97,7 +107,7 @@ function App() {
 
     <section className={`map-panel ${view === "3D" ? "mode-3d" : ""}`}>
       {view === "2D" ? <>
-        <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "697 个座位 · 站席 200 人" : "408 个已读取座位"}</span></div>
+        <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "800 个座位" : "408 个座位"}</span></div>
         <div className="map-stage" aria-label={`${floor} 座位图`}>
           <div className={`map-transform ${zoom >= 1.4 ? "zoomed" : ""}`} style={{ transform: `scale(${zoom})` }}>
             <svg viewBox={floor === "1F" ? "0 0 1000 920" : "0 0 1000 650"} role="img" aria-label={`${floor} 座位分布示意图`}>
@@ -108,12 +118,8 @@ function App() {
               {floor === "1F" && <>
                 <text className="zone-label" x="500" y="125" textAnchor="middle">前 区</text>
                 <rect className="control-zone" x="431" y="699" width="138" height="54" rx="4" />
-                <text className="control-label" x="500" y="731" textAnchor="middle">控台 / 留空</text>
-                <g className="standing-zone" aria-label="站席 有遮挡（200人）">
-                  <rect x="280" y="787" width="440" height="112" rx="3" />
-                  <text className="standing-title" x="500" y="833" textAnchor="middle">站席</text>
-                  <text className="standing-note" x="500" y="860" textAnchor="middle">有遮挡（200人）</text>
-                </g>
+                <text className="control-label" x="500" y="731" textAnchor="middle">控台</text>
+                <text className="zone-label" x="500" y="774" textAnchor="middle">后区 · 有遮挡</text>
               </>}
               {floor === "2F" && <text className="zone-label" x="500" y="113" textAnchor="middle">二楼固定坐席</text>}
               {seats.map((seat) => {
@@ -123,13 +129,13 @@ function App() {
                   <circle cx={x} cy={seat.y} r={floor === "1F" ? 6 : 7} /><text className="seat-number" x={x} y={seat.y + 3}>{seat.number}</text><title>{seat.row}排{seat.number}号</title>
                 </g>;
               })}
-              {Array.from({ length: floor === "1F" ? 19 : 12 }, (_, i) => <text key={i} className="row-label" x="130" y={floor === "1F" ? (i < 12 ? 154 + i * 25 : 514 + (i - 12) * 27) : 152 + i * 34}>{i + 1}</text>)}
+              {Array.from({ length: floor === "1F" ? 23 : 12 }, (_, i) => <text key={i} className="row-label" x="130" y={floor === "1F" ? (i < 12 ? 154 + i * 25 : i < 19 ? 514 + (i - 12) * 27 : 784 + (i - 19) * 31) : 152 + i * 34}>{i + 1}</text>)}
               <text className="row-caption" x="102" y={floor === "1F" ? 445 : 580} transform={`rotate(-90 102 ${floor === "1F" ? 445 : 580})`}>排号</text>
             </svg>
           </div>
         </div>
         <div className="map-footer"><span><i className="legend-seat" />可选位置</span><span><i className="legend-selected" />当前选择</span><div className="map-tools"><button aria-label="缩小" onClick={() => setZoom(Math.max(0.8, zoom - 0.15))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button aria-label="放大" onClick={() => setZoom(Math.min(2.5, zoom + 0.15))}><Plus size={15} /></button><button aria-label="复位" onClick={() => setZoom(1)}><RotateCcw size={14} /></button></div></div>
-        {floor === "1F" && <div className="data-note"><span>!</span><p>1F 中区有 7 个座位编号待核对；后区为站席示意，不展示座位点。</p><strong>数据说明</strong></div>}
+        {floor === "1F" && <div className="data-note"><span>i</span><p>1F 后区有遮挡标注沿用图纸；控台区域不含座位。</p><strong>图纸布局</strong></div>}
       </> : <>
         <div className="map-meta"><span>3D 视图 <em>预览占位</em></span><span className="map-count">{camera}</span></div>
         <div className={`placeholder-scene scene-${camera === "手机取景" ? "camera" : camera === "观众视角" ? "audience" : "overview"}`}>
@@ -163,7 +169,7 @@ function App() {
       <section className="bottom-sheet" role="dialog" aria-modal="true" aria-label={sheet === "venue" ? "选择场馆" : sheet === "show" ? "选择场次" : "选择位置"}>
         <div className="sheet-handle" /><div className="sheet-heading"><div><small>上海 LIVERSE</small><h2>{sheet === "venue" ? "选择场馆" : sheet === "show" ? "选择场次" : "选择位置"}</h2></div><button aria-label="关闭" onClick={() => setSheet(null)}><X size={18} /></button></div>
         {sheet === "venue" && <div className="choice-list"><button className="choice-row chosen" onClick={() => setSheet(null)}><span className="choice-icon"><MapPin size={18} /></span><span><strong>上海 LIVERSE</strong><small>上海 · 音宇宙艺术中心</small></span><Check size={17} /></button></div>}
-        {sheet === "show" && <div className="choice-list">{["演示场次 A", "演示场次 B"].map((item) => <button key={item} className={`choice-row ${show === item ? "chosen" : ""}`} onClick={() => { setShow(item); setSheet(null); }}><span className="choice-index">{item.endsWith("A") ? "A" : "B"}</span><span><strong>{item}</strong><small>演示场次 · 全坐席（有过道）1184</small></span>{show === item && <Check size={17} />}</button>)}</div>}
+        {sheet === "show" && <div className="choice-list">{["演示场次 A", "演示场次 B"].map((item) => <button key={item} className={`choice-row ${show === item ? "chosen" : ""}`} onClick={() => { setShow(item); setSheet(null); }}><span className="choice-index">{item.endsWith("A") ? "A" : "B"}</span><span><strong>{item}</strong><small>演示场次 · 全坐席1208</small></span>{show === item && <Check size={17} />}</button>)}</div>}
         {sheet === "position" && <div className="position-form"><label>楼层<div className="form-segment">{(["1F", "2F"] as const).map((item) => <button key={item} className={positionFloor === item ? "active" : ""} onClick={() => { setPositionFloor(item); setPositionRow(1); setPositionNumber(1); }}>{item} {item === "1F" ? "一楼" : "二楼"}</button>)}</div></label><div className="form-fields"><label>排号<select id="row-select" value={positionRow} onChange={(event) => { setPositionRow(Number(event.target.value)); setPositionNumber(1); }}>{positionRows.map((row) => <option key={row} value={row}>{row} 排</option>)}</select></label><label>座号<select id="seat-select" value={positionNumber} onChange={(event) => setPositionNumber(Number(event.target.value))}>{positionSeats.map((seat) => <option key={seat.number} value={seat.number}>{seat.number} 号</option>)}</select></label></div><button className="confirm-position" onClick={() => { const candidate = positionSeats.find((seat) => seat.number === positionNumber); if (candidate) { setFloor(positionFloor); setSelected(candidate); } setSheet(null); }}>确认位置 <Check size={17} /></button><button className="map-picker-link" onClick={() => { setView("2D"); setSheet(null); }}>回到 2D 座位图选择</button></div>}
       </section>
     </div>}
