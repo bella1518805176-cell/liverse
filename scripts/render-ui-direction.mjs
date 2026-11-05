@@ -45,7 +45,7 @@ function position(selected) {
   return txt(16, 690, selected ? '已选位置' : '当前位置', 12, muted)
     + txt(16, 715, selected ? '上海 LIVERSE · 1F前区' : '尚未选择位置', 16, white, 600)
     + (selected ? txt(16, 738, '1排1号', 16, white, 600) : txt(16, 738, '在地图点选，或使用选位置', 12, muted))
-    + button(16, 751, selected ? 231 : 343, selected ? '更换位置' : '选位置', true, 48)
+    + button(16, 751, selected ? 231 : 343, selected ? '从这里看舞台' : '选位置', true, 48)
     + (selected ? button(255, 751, 104, '清除选择', false, 48) : '');
 }
 function map(selected) {

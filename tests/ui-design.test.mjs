@@ -120,6 +120,31 @@ test('each 3D mode defines selected and unselected behavior, with explicit place
   assert.match(design, /三个模式按钮始终可用，包括未选座时/);
 });
 
+test('selected positions in either view use the direct 3D audience action; empty states still select a position', () => {
+  const actions = rows(section('### 3.3 底部主按钮', '## 4.'), /^\| (?:2D|3D) \|/);
+  assert.equal(actions.length, 4);
+  for (const view of ['2D', '3D']) {
+    const empty = actions.find(([mode, state]) => mode === view && state === '未选位置');
+    const selected = actions.find(([mode, state]) => mode === view && state === '已选位置');
+    assert.equal(empty?.[2], '选位置');
+    assert.match(empty[3], /打开原位置选择浮层/);
+    assert.equal(selected?.[2], '从这里看舞台');
+    assert.match(selected[3], /同页切到3D「观众视角」/);
+    assert.match(selected[3], /保留当前场馆、场次、楼层、位置及2D地图视口/);
+  }
+  assert.match(actions.find(([view, state]) => view === '3D' && state === '已选位置')[3], /已经处于观众视角时保持当前状态/);
+  const states = [...svg.matchAll(/<g id="([^"]+)" data-view="([^"]+)" data-selected="([^"]+)" data-mode="([^"]*)"/g)];
+  for (let index = 0; index < states.length; index += 1) {
+    const state = states[index];
+    const frame = svg.slice(state.index, states[index + 1]?.index ?? svg.length).split('<g data-overlay=')[0];
+    const selected = state[3] === 'true';
+    const label = selected ? '从这里看舞台' : '选位置';
+    assert.match(frame, new RegExp(`<text[^>]* y="780"[^>]*>${label}</text>`), state[1]);
+    assert.ok(!/<text[^>]* y="780"[^>]*>更换位置<\/text>/.test(frame), state[1]);
+    assert.equal(frame.includes('>清除选择</text>'), selected, `${state[1]}: clear action changed`);
+  }
+});
+
 test('current diagram shows one-page states, an honest 2D schematic and image-free 3D placeholders', async () => {
   const frames = [...svg.matchAll(/<g id="([^"]+)" data-view="([^"]+)" data-selected="([^"]+)" data-mode="([^"]*)"/g)];
   assert.equal(frames.length, 6);
