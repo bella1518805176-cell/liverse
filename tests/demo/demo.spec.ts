@@ -9,7 +9,15 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await expect(page.getByText("1F 中区有 7 个座位编号待核对；后区为站席示意，不展示座位点。")).toBeVisible();
   await expect(page.locator(".standing-zone")).toHaveAttribute("aria-label", "站席 有遮挡（200人）");
   await expect(page.locator('.seat[aria-label^="1F后区"]')).toHaveCount(0);
-  await expect(page.getByText("673 个座位 · 站席 200 人")).toBeVisible();
+  await expect(page.getByText("697 个座位 · 站席 200 人")).toBeVisible();
+  const frontRowSeats = page.locator('.seat[aria-label^="1F前区 1排"]');
+  await expect(frontRowSeats).toHaveCount(40);
+  await expect(page.getByRole("button", { name: "1F前区 1排40号" })).toHaveCount(1);
+  const seatGaps = await frontRowSeats.evaluateAll((groups) => {
+    const xs = groups.map((group) => Number(group.querySelector("circle")?.getAttribute("cx")));
+    return xs.slice(1).map((x, index) => x - xs[index]);
+  });
+  expect(new Set(seatGaps).size).toBe(1);
   await page.screenshot({ path: `output/verification/shanghai-standing-${testInfo.project.name}.png`, fullPage: true });
   await expect(page.getByRole("button", { name: "从这里看舞台" })).toBeDisabled();
   await page.getByRole("button", { name: "选位置" }).click();

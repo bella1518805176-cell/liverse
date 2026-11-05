@@ -30,10 +30,10 @@ function buildSeats(floor: Floor): Seat[] {
     });
   }
   return [
-    ...Array.from({ length: 12 }, (_, i) => ({ row: i + 1, count: 38, area: "前区", y: 150 + i * 25 })),
+    ...Array.from({ length: 12 }, (_, i) => ({ row: i + 1, count: 40, area: "前区", y: 150 + i * 25 })),
     ...Array.from({ length: 7 }, (_, i) => ({ row: i + 13, count: 31, area: "中区", y: 510 + i * 27 })),
   ].flatMap(({ row, count, area, y }) => Array.from({ length: count }, (_, i) => {
-    const gap = area === "前区" ? 42 : 18;
+    const gap = area === "前区" ? 0 : 18;
     const splitAt = Math.ceil(count / 2);
     const x = 500 + (i - (count - 1) / 2) * 18 + (i >= splitAt ? gap : 0);
     return { floor, area, row, number: i + 1, x, y };
@@ -97,7 +97,7 @@ function App() {
 
     <section className={`map-panel ${view === "3D" ? "mode-3d" : ""}`}>
       {view === "2D" ? <>
-        <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "673 个座位 · 站席 200 人" : "408 个已读取座位"}</span></div>
+        <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "697 个座位 · 站席 200 人" : "408 个已读取座位"}</span></div>
         <div className="map-stage" aria-label={`${floor} 座位图`}>
           <div className={`map-transform ${zoom >= 1.4 ? "zoomed" : ""}`} style={{ transform: `scale(${zoom})` }}>
             <svg viewBox={floor === "1F" ? "0 0 1000 920" : "0 0 1000 650"} role="img" aria-label={`${floor} 座位分布示意图`}>
