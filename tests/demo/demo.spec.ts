@@ -7,6 +7,7 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await expect(page.getByRole("heading", { name: "找到你的现场位置" })).toBeVisible();
   await expect(page.getByText("全坐席（有过道）1184").first()).toBeVisible();
   await expect(page.getByText("图纸标注 1184 座，当前可读 1177 个编号；1F 中区有 7 个编号待核对。")).toBeVisible();
+  await expect(page.getByRole("button", { name: "从这里看舞台" })).toBeDisabled();
 
   await page.getByRole("button", { name: "选择场馆" }).click();
   await expect(page.getByRole("dialog", { name: "选择场馆" })).toBeVisible();
@@ -18,6 +19,9 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await expect(page.getByRole("button", { name: "选择场次" })).toContainText("演示场次 B");
   await page.getByRole("button", { name: "1F前区 1排1号" }).click();
   await expect(page.getByText("上海 LIVERSE · 1F前区 · 1排1号")).toBeVisible();
+  await page.getByRole("button", { name: "从这里看舞台" }).click();
+  await expect(page.locator(".scene-title")).toHaveText("观众视角");
+  await expect(page.locator(".scene-location")).toContainText("1排1号");
 
   await page.getByRole("button", { name: /3D 视图/ }).click();
   await expect(page.getByText("3D 模型暂未接入")).toBeVisible();
@@ -32,6 +36,9 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await page.getByRole("button", { name: "确认位置" }).click();
   await expect(page.locator(".selection-copy strong")).toHaveText("上海 LIVERSE · 2F固定坐席 · 1排1号");
   await expect(page.locator(".scene-title")).toHaveText("手机取景");
+  await page.getByRole("button", { name: "从这里看舞台" }).click();
+  await expect(page.locator(".scene-title")).toHaveText("观众视角");
+  await page.getByRole("button", { name: /手机取景/ }).click();
   await page.getByRole("button", { name: "回到 2D 座位图" }).click();
   await expect(page.locator(".floor-toggle button").nth(1)).toHaveClass(/active/);
   await expect(page.getByRole("button", { name: "2F固定坐席 1排1号" })).toHaveClass(/selected/);

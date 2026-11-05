@@ -146,6 +146,15 @@ function App() {
       {selected && <button className="clear-selection" aria-label="清除选择" onClick={() => setSelected(null)}><X size={17} /></button>}
       <button className="selection-action" onClick={openPosition}>{selected ? "更换" : "选择位置"}</button>
     </footer>
+    <button
+      className="stage-view-action"
+      disabled={!selected}
+      onClick={() => {
+        if (!selected) return;
+        setCamera("观众视角");
+        setView("3D");
+      }}
+    >从这里看舞台</button>
 
     {sheet && <div className="sheet-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSheet(null); }}>
       <section className="bottom-sheet" role="dialog" aria-modal="true" aria-label={sheet === "venue" ? "选择场馆" : sheet === "show" ? "选择场次" : "选择位置"}>
