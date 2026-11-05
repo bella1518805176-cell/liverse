@@ -32,11 +32,10 @@ function buildSeats(floor: Floor): Seat[] {
   return [
     ...Array.from({ length: 12 }, (_, i) => ({ row: i + 1, count: 38, area: "前区", y: 150 + i * 25 })),
     ...Array.from({ length: 7 }, (_, i) => ({ row: i + 13, count: 31, area: "中区", y: 510 + i * 27 })),
-    ...Array.from({ length: 4 }, (_, i) => ({ row: i + 20, count: 24, area: "后区", y: 780 + i * 31 })),
   ].flatMap(({ row, count, area, y }) => Array.from({ length: count }, (_, i) => {
-    const gap = area === "前区" ? 42 : area === "中区" ? 18 : 12;
+    const gap = area === "前区" ? 42 : 18;
     const splitAt = Math.ceil(count / 2);
-    const x = 500 + (i - (count - 1) / 2) * (area === "后区" ? 28 : 18) + (i >= splitAt ? gap : 0);
+    const x = 500 + (i - (count - 1) / 2) * 18 + (i >= splitAt ? gap : 0);
     return { floor, area, row, number: i + 1, x, y };
   }));
 }
@@ -98,7 +97,7 @@ function App() {
 
     <section className={`map-panel ${view === "3D" ? "mode-3d" : ""}`}>
       {view === "2D" ? <>
-        <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "769" : "408"} 个已读取座位</span></div>
+        <div className="map-meta"><span>{floor} · {floor === "1F" ? "场次座位布局" : "固定坐席"}</span><span className="map-count">{floor === "1F" ? "673 个座位 · 站席 200 人" : "408 个已读取座位"}</span></div>
         <div className="map-stage" aria-label={`${floor} 座位图`}>
           <div className={`map-transform ${zoom >= 1.4 ? "zoomed" : ""}`} style={{ transform: `scale(${zoom})` }}>
             <svg viewBox={floor === "1F" ? "0 0 1000 920" : "0 0 1000 650"} role="img" aria-label={`${floor} 座位分布示意图`}>
@@ -110,7 +109,11 @@ function App() {
                 <text className="zone-label" x="500" y="125" textAnchor="middle">前 区</text>
                 <rect className="control-zone" x="431" y="699" width="138" height="54" rx="4" />
                 <text className="control-label" x="500" y="731" textAnchor="middle">控台 / 留空</text>
-                <text className="zone-label" x="500" y="774" textAnchor="middle">后区 · 原图标注「有遮挡」</text>
+                <g className="standing-zone" aria-label="站席 有遮挡（200人）">
+                  <rect x="280" y="787" width="440" height="112" rx="3" />
+                  <text className="standing-title" x="500" y="833" textAnchor="middle">站席</text>
+                  <text className="standing-note" x="500" y="860" textAnchor="middle">有遮挡（200人）</text>
+                </g>
               </>}
               {floor === "2F" && <text className="zone-label" x="500" y="113" textAnchor="middle">二楼固定坐席</text>}
               {seats.map((seat) => {
@@ -120,13 +123,13 @@ function App() {
                   <circle cx={x} cy={seat.y} r={floor === "1F" ? 6 : 7} /><text className="seat-number" x={x} y={seat.y + 3}>{seat.number}</text><title>{seat.row}排{seat.number}号</title>
                 </g>;
               })}
-              {Array.from({ length: floor === "1F" ? 23 : 12 }, (_, i) => <text key={i} className="row-label" x="130" y={floor === "1F" ? (i < 12 ? 154 + i * 25 : i < 19 ? 514 + (i - 12) * 27 : 784 + (i - 19) * 31) : 152 + i * 34}>{i + 1}</text>)}
+              {Array.from({ length: floor === "1F" ? 19 : 12 }, (_, i) => <text key={i} className="row-label" x="130" y={floor === "1F" ? (i < 12 ? 154 + i * 25 : 514 + (i - 12) * 27) : 152 + i * 34}>{i + 1}</text>)}
               <text className="row-caption" x="102" y={floor === "1F" ? 445 : 580} transform={`rotate(-90 102 ${floor === "1F" ? 445 : 580})`}>排号</text>
             </svg>
           </div>
         </div>
         <div className="map-footer"><span><i className="legend-seat" />可选位置</span><span><i className="legend-selected" />当前选择</span><div className="map-tools"><button aria-label="缩小" onClick={() => setZoom(Math.max(0.8, zoom - 0.15))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button aria-label="放大" onClick={() => setZoom(Math.min(2.5, zoom + 0.15))}><Plus size={15} /></button><button aria-label="复位" onClick={() => setZoom(1)}><RotateCcw size={14} /></button></div></div>
-        {floor === "1F" && <div className="data-note"><span>!</span><p>图纸标注 1184 座，当前可读 1177 个编号；1F 中区有 7 个编号待核对。</p><strong>数据说明</strong></div>}
+        {floor === "1F" && <div className="data-note"><span>!</span><p>1F 中区有 7 个座位编号待核对；后区为站席示意，不展示座位点。</p><strong>数据说明</strong></div>}
       </> : <>
         <div className="map-meta"><span>3D 视图 <em>预览占位</em></span><span className="map-count">{camera}</span></div>
         <div className={`placeholder-scene scene-${camera === "手机取景" ? "camera" : camera === "观众视角" ? "audience" : "overview"}`}>
