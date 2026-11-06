@@ -74,6 +74,9 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
 
 test("public demo server exposes only static assets", async ({ request }) => {
   test.skip(!!process.env.DEMO_BASE_URL, "Local static server contract is tested separately from the managed hosting gateway");
+  const repairPath = await request.get("/%E4%BF%AE%E5%A4%8D", { maxRedirects: 0 });
+  expect(repairPath.status()).toBe(302);
+  expect(repairPath.headers().location).toBe("/");
   for (const path of ["/api/v1/admin/me", "/api/v1/health", "/server.mjs", "/.env", "/README.txt", "/assets/../../package.json"]) {
     expect((await request.get(path)).status()).toBe(404);
   }

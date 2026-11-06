@@ -24,6 +24,10 @@ const server = http.createServer(async (req, res) => {
     const pathname = decodeURIComponent(
       new URL(req.url, "http://demo.local").pathname,
     );
+    if (pathname === "/修复") {
+      res.writeHead(302, { Location: "/", "Cache-Control": "no-store" }).end();
+      return;
+    }
     // Serve only the public build, never the launcher or neighboring workspace files.
     if (
       pathname !== "/" &&
