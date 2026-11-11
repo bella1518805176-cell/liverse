@@ -1,7 +1,9 @@
-import { useMemo, useState } from "react";
+import { lazy, Suspense, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Check, ChevronDown, ChevronLeft, ChevronUp, CircleHelp, MapPin, Minus, Plus, RotateCcw, X } from "lucide-react";
 import "./style.css";
+
+const Venue3D = lazy(() => import("./Venue3D"));
 
 type Floor = "1F" | "2F";
 type Sheet = "venue" | "show" | "position" | null;
@@ -135,14 +137,13 @@ function App() {
         {floor === "1F" && <div className="data-note"><span>i</span><p>1F 前区 480 座、中区 224 座、后区 96 座，合计 800 个坐席。</p><strong>图纸布局</strong></div>}
         {floor === "2F" && <div className="data-note"><span>i</span><p>2F 左区 111 座、中区 187 座、右区 110 座，共 408 座；无遮挡 393 座，有遮挡 15 座。</p><strong>图纸布局</strong></div>}
       </> : <>
-        <div className="map-meta"><span>3D 视图 <em>预览占位</em></span><span className="map-count">{camera}</span></div>
-        <div className={`placeholder-scene scene-${camera === "手机取景" ? "camera" : camera === "观众视角" ? "audience" : "overview"}`}>
-          <div className="scene-topline"><span>上海 LIVERSE</span><span>MODEL / NOT CONNECTED</span></div>
-          <div className="scene-symbol"><div className="scene-ring ring-one" /><div className="scene-ring ring-two" /><div className="scene-center">{camera === "手机取景" ? "取景框" : camera === "观众视角" ? "观众视角" : "场馆总览"}</div></div>
-          <p className="scene-title">{camera}</p><p className="scene-description">3D 模型暂未接入</p>
-          {camera === "手机取景" && <div className="viewfinder"><span /><span /><span /><span /></div>}
-          <div className="scene-location">{selected ? <><MapPin size={14} />{position}</> : <>选择一个位置以继续</>}</div>
-        </div>
+        <div className="map-meta"><span>3D 视图 <em>模型预览</em></span><span className="map-count">全坐席 · 1208 座</span></div>
+        <Suspense fallback={<div className="model-loading" role="status">正在加载场馆模型…</div>}>
+          <Venue3D mode={camera} selected={selected} position={position} onChoose={openPosition} onMap={() => setView("2D")} onSelect={(ref) => {
+            const seat = buildSeats(ref.floor).find((item) => item.row === ref.row && item.number === ref.number);
+            if (seat) { setFloor(ref.floor); setSelected(seat); }
+          }} />
+        </Suspense>
         <div className="camera-modes">{(["场馆总览", "观众视角", "手机取景"] as CameraMode[]).map((mode, i) => <button key={mode} className={camera === mode ? "active" : ""} onClick={() => setCamera(mode)}><span>0{i + 1}</span>{mode}</button>)}</div>
         <button className="back-to-map" onClick={() => setView("2D")}>回到 2D 座位图</button>
       </>}

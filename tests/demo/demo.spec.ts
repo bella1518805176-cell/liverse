@@ -52,7 +52,8 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await expect(page.locator(".scene-location")).toContainText("1排1号");
 
   await page.getByRole("button", { name: /3D 视图/ }).click();
-  await expect(page.getByText("3D 模型暂未接入")).toBeVisible();
+  await expect(page.locator(".venue-canvas")).toHaveAttribute("data-ready", "true");
+  await expect(page.getByText("尺寸估算模型")).toBeVisible();
   await page.getByRole("button", { name: /观众视角/ }).click();
   await expect(page.locator(".scene-title")).toHaveText("观众视角");
   await expect(page.locator(".scene-location")).toContainText("1排1号");
