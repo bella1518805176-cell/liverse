@@ -6,11 +6,11 @@ import "./style.css";
 type Floor = "1F" | "2F";
 type Sheet = "venue" | "show" | "position" | null;
 type CameraMode = "场馆总览" | "观众视角" | "手机取景";
-type Seat = { floor: Floor; area: string; row: number; number: number; x: number; y: number };
+type Seat = { floor: Floor; area: string; row: number; number: number; x: number; y: number; obstructed?: boolean };
 
 const fixedRows = [
-  [6, 23], [9, 17, 8], [10, 17, 10], [10, 17, 10], [11, 17, 11], [11, 17, 11],
-  [11, 17, 11], [11, 17, 11], [11, 17, 11], [10, 17, 10], [6, 17, 6], [5, 5],
+  [6, 17, 6], [9, 17, 8], [10, 17, 10], [10, 17, 10], [11, 17, 11], [11, 17, 11],
+  [11, 17, 11], [11, 17, 11], [11, 17, 11], [10, 17, 10], [6, 17, 6], [5, 0, 5],
 ].map((groups, index) => ({ groups, row: index + 1 }));
 
 function buildSeats(floor: Floor): Seat[] {
@@ -20,9 +20,12 @@ function buildSeats(floor: Floor): Seat[] {
       let number = 1;
       groups.forEach((count, groupIndex) => {
         for (let i = 0; i < count; i += 1) {
-          const total = groups.reduce((sum, group) => sum + group, 0);
-          const x = 500 + (number - (total + 1) / 2) * 20 + groupIndex * 24;
-          seats.push({ floor, area: "固定坐席", row, number, x, y: 118 + row * 34 });
+          // Match the source columns: left block right-aligned, middle/right left-aligned.
+          // Keep the empty middle block in row 12 so its right seats stay on the right.
+          const x = groupIndex === 0 ? 280 - (count - 1 - i) * 20 : (groupIndex === 1 ? 340 : 720) + i * 20;
+          const obstructed = (groupIndex === 0 && i === 0 && row >= 2 && row <= 9)
+            || (groupIndex === 2 && i === count - 1 && row >= 3 && row <= 9);
+          seats.push({ floor, area: "固定坐席", row, number, x, y: 118 + row * 34, obstructed });
           number += 1;
         }
       });
@@ -61,7 +64,7 @@ function App() {
     if (selected?.floor !== next) setSelected(null);
     setZoom(1);
   };
-  const position = selected ? `上海 LIVERSE · ${selected.floor}${selected.area} · ${selected.row}排${selected.number}号` : "尚未选择位置";
+  const position = selected ? `上海 LIVERSE · ${selected.floor}${selected.area} · ${selected.row}排${selected.number}号${selected.obstructed ? " · 有遮挡" : ""}` : "尚未选择位置";
   const openPosition = () => {
     const targetFloor = selected?.floor ?? floor;
     setPositionFloor(targetFloor);
@@ -119,17 +122,18 @@ function App() {
               {seats.map((seat) => {
                 const active = selected?.floor === seat.floor && selected.row === seat.row && selected.number === seat.number;
                 const x = floor === "1F" ? seat.x : seat.x;
-                return <g key={`${seat.floor}-${seat.row}-${seat.number}`} className={`seat ${active ? "selected" : ""}`} role="button" tabIndex={0} aria-label={`${seat.floor}${seat.area} ${seat.row}排${seat.number}号`} onClick={() => setSelected(seat)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelected(seat); }}>
-                  <circle cx={x} cy={seat.y} r={floor === "1F" ? 6 : 7} /><text className="seat-number" x={x} y={seat.y + 3}>{seat.number}</text><title>{seat.row}排{seat.number}号</title>
+                return <g key={`${seat.floor}-${seat.row}-${seat.number}`} className={`seat ${seat.obstructed ? "obstructed" : ""} ${active ? "selected" : ""}`} role="button" tabIndex={0} aria-label={`${seat.floor}${seat.area} ${seat.row}排${seat.number}号${seat.obstructed ? " 有遮挡" : ""}`} onClick={() => setSelected(seat)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") setSelected(seat); }}>
+                  <circle cx={x} cy={seat.y} r={floor === "1F" ? 6 : 7} /><text className="seat-number" x={x} y={seat.y + 3}>{seat.number}</text><title>{seat.row}排{seat.number}号{seat.obstructed ? " · 有遮挡" : ""}</title>
                 </g>;
               })}
-              {Array.from({ length: floor === "1F" ? 23 : 12 }, (_, i) => <text key={i} className="row-label" x="130" y={floor === "1F" ? (i < 12 ? 154 + i * 25 : i < 19 ? 514 + (i - 12) * 27 : 784 + (i - 19) * 31) : 152 + i * 34}>{i + 1}</text>)}
-              <text className="row-caption" x="102" y={floor === "1F" ? 445 : 580} transform={`rotate(-90 102 ${floor === "1F" ? 445 : 580})`}>排号</text>
+              {Array.from({ length: floor === "1F" ? 23 : 12 }, (_, i) => <text key={i} className="row-label" x={floor === "1F" ? 130 : 40} y={floor === "1F" ? (i < 12 ? 154 + i * 25 : i < 19 ? 514 + (i - 12) * 27 : 784 + (i - 19) * 31) : 156 + i * 34}>{i + 1}</text>)}
+              <text className="row-caption" x={floor === "1F" ? 102 : 20} y={floor === "1F" ? 445 : 580} transform={`rotate(-90 ${floor === "1F" ? 102 : 20} ${floor === "1F" ? 445 : 580})`}>排号</text>
             </svg>
           </div>
         </div>
-        <div className="map-footer"><span><i className="legend-seat" />可选位置</span><span><i className="legend-selected" />当前选择</span><div className="map-tools"><button aria-label="缩小" onClick={() => setZoom(Math.max(0.8, zoom - 0.15))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button aria-label="放大" onClick={() => setZoom(Math.min(2.5, zoom + 0.15))}><Plus size={15} /></button><button aria-label="复位" onClick={() => setZoom(1)}><RotateCcw size={14} /></button></div></div>
+        <div className={`map-footer ${floor === "2F" ? "floor-2f-legend" : ""}`}><span><i className="legend-seat" />可选位置</span>{floor === "2F" && <span><i className="legend-obstructed" />有遮挡</span>}<span><i className="legend-selected" />当前选择</span><div className="map-tools"><button aria-label="缩小" onClick={() => setZoom(Math.max(0.8, zoom - 0.15))}><Minus size={15} /></button><span>{Math.round(zoom * 100)}%</span><button aria-label="放大" onClick={() => setZoom(Math.min(2.5, zoom + 0.15))}><Plus size={15} /></button><button aria-label="复位" onClick={() => setZoom(1)}><RotateCcw size={14} /></button></div></div>
         {floor === "1F" && <div className="data-note"><span>i</span><p>1F 前区 480 座、中区 224 座、后区 96 座，合计 800 个坐席。</p><strong>图纸布局</strong></div>}
+        {floor === "2F" && <div className="data-note"><span>i</span><p>2F 左区 111 座、中区 187 座、右区 110 座，共 408 座；无遮挡 393 座，有遮挡 15 座。</p><strong>图纸布局</strong></div>}
       </> : <>
         <div className="map-meta"><span>3D 视图 <em>预览占位</em></span><span className="map-count">{camera}</span></div>
         <div className={`placeholder-scene scene-${camera === "手机取景" ? "camera" : camera === "观众视角" ? "audience" : "overview"}`}>
