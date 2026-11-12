@@ -18,22 +18,25 @@ let alive = true;
 Page({
   data: {
     text: "",
-    displayName: "",
+    displayName: "热心观众",
     device: "",
     zoom: "",
     shotDate: "",
     scope: 0,
-    scopes: ["整个场馆", "区域参考", "精确座位"],
+    scopes: ["区域参考", "精确座位"],
     layout: null as Layout | null,
     sections: [] as Layout["sections"],
     sectionIndex: 0,
     row: "",
     seat: "",
-    events: [{ id: "", name: "场次未填写" }],
+    events: [{ id: "", name: "请选择场次" }],
     eventIndex: 0,
+    eventProposal: false,
+    proposalName: "",
+    proposalDate: "",
     images: [] as ImageDraft[],
     tags: [] as string[],
-    allTags: ["舞台全景", "侧向视角", "栏杆", "立柱", "现场氛围", "音响体验"],
+    allTags: ["无遮挡", "栏杆遮挡", "音响遮挡", "屏看得清楚", "距离较远"],
     consent: false,
     busy: false,
     error: "",
@@ -52,7 +55,7 @@ Page({
         this.setData({
           layout,
           sections: layout?.sections ?? [],
-          events: [{ id: "", name: "场次未填写" }, ...events],
+          events: [{ id: "", name: "请选择场次" }, ...events],
         });
     } catch (e) {
       if (alive) this.setData({ error: errorText(e) });
@@ -67,6 +70,10 @@ Page({
   },
   picker(e: WechatMiniprogram.PickerChange) {
     this.setData({ [e.currentTarget.dataset.field]: Number(e.detail.value) });
+    submitKey = newKey();
+  },
+  proposal() {
+    this.setData({ eventProposal: !this.data.eventProposal });
     submitKey = newKey();
   },
   consent(e: WechatMiniprogram.CheckboxGroupChange) {
@@ -116,7 +123,7 @@ Page({
       layoutVersionId: layout.id,
       kind: "venue",
     };
-    if (this.data.scope === 1) {
+    if (this.data.scope === 0) {
       if (!this.data.sections[this.data.sectionIndex]) return;
       position = {
         ...position,
@@ -124,7 +131,7 @@ Page({
         sectionId: this.data.sections[this.data.sectionIndex].id,
       };
     }
-    if (this.data.scope === 2) {
+    if (this.data.scope === 1) {
       const sectionId = this.data.sections[this.data.sectionIndex]?.id;
       const seat = layout.seats.find(
         (s) =>
@@ -139,6 +146,9 @@ Page({
       position = { ...position, kind: "seat", seatId: seat.id };
     }
     if (
+      (!this.data.events[this.data.eventIndex].id &&
+        (!this.data.eventProposal || !this.data.proposalName.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(this.data.proposalDate))) ||
+      !this.data.sections[this.data.sectionIndex] ||
       !this.data.consent ||
       (!this.data.text.trim() && !this.data.images.length) ||
       !this.data.displayName.trim()
@@ -185,6 +195,9 @@ Page({
         displayName: this.data.displayName,
         ...(this.data.events[this.data.eventIndex].id
           ? { eventId: this.data.events[this.data.eventIndex].id }
+          : {}),
+        ...(this.data.eventProposal
+          ? { eventProposal: { name: this.data.proposalName.trim(), date: this.data.proposalDate } }
           : {}),
         ...(this.data.device ? { device: this.data.device } : {}),
         ...(this.data.zoom ? { zoom: this.data.zoom } : {}),

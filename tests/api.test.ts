@@ -42,8 +42,9 @@ const layout = demoLayout(),
   };
 const input: ContributionInput = {
   position,
+  eventId: "demo-event",
   text: "接口测试内容",
-  tags: ["现场氛围"],
+  tags: ["无遮挡"],
   mediaIds: [],
   consent: true,
   displayName: "测试观众",
@@ -78,6 +79,12 @@ beforeAll(async () => {
       "utf8",
     ),
   );
+  await client.query(
+    await readFile(
+      "apps/api/prisma/migrations/202611120001_contribution_context/migration.sql",
+      "utf8",
+    ),
+  );
   await client.end();
   db = new PrismaClient();
   await db.venue.create({
@@ -90,6 +97,9 @@ beforeAll(async () => {
       status: "published",
       data: JSON.parse(JSON.stringify(layout)),
     },
+  });
+  await db.event.create({
+    data: { id: "demo-event", venueId: "beijing", name: "演示场次", localDate: "2026-11-12" },
   });
   const hash = await argon2.hash("test_password_long");
   await db.admin.createMany({
@@ -255,7 +265,7 @@ describe.sequential("persistent API permissions and lifecycle", () => {
       .expect(201);
     await req().get(`/api/v1/media/${id}`).expect(401);
   });
-  it("resolves matching published positions without requiring events", async () => {
+  it("resolves matching published positions and returns venue events", async () => {
     expect(
       (await req().get("/api/v1/venues").expect(200)).body[0].layout.id,
     ).toBe(layout.id);
@@ -264,7 +274,7 @@ describe.sequential("persistent API permissions and lifecycle", () => {
       .post("/api/v1/positions/resolve")
       .send({ ...position, seatId: "fabricated" })
       .expect(400);
-    expect((await req().get("/api/v1/events").expect(200)).body).toEqual([]);
+    expect((await req().get("/api/v1/events?venueId=beijing").expect(200)).body).toHaveLength(1);
   });
   it("creates favorites idempotently and isolates accounts", async () => {
     for (let i = 0; i < 2; i++)

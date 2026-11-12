@@ -83,6 +83,9 @@ model Contribution {
   text        String
   tags        String[]
   displayName String
+  contentType String @default("photo")
+  eventProposalName String?
+  eventProposalDate String?
   source      String @default("user")
   state       String @default("pending")
   device      String?

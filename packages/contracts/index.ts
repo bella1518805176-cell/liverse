@@ -54,6 +54,8 @@ export type ContributionInput = {
   mediaIds: string[];
   consent: boolean;
   displayName: string;
+  contentType?: "photo" | "feeling";
+  eventProposal?: { name: string; date: string };
   device?: string;
   zoom?: string;
   shotDate?: string;
@@ -74,6 +76,8 @@ export type PublicContent = {
   zoom?: string;
   shotDate?: string;
   revision: number;
+  contentType?: "photo" | "feeling";
+  eventProposal?: { name: string; date: string };
 };
 export type Ticket = {
   id: string;
@@ -124,12 +128,12 @@ export const contributionSchema = {
     position: positionSchema,
     eventId: string(100),
     text: string(300),
-    tags: {
+  tags: {
       type: "array",
       maxItems: 6,
       uniqueItems: true,
       items: {
-        enum: ["舞台全景", "侧向视角", "栏杆", "立柱", "现场氛围", "音响体验"],
+        enum: ["无遮挡", "栏杆遮挡", "音响遮挡", "屏看得清楚", "距离较远"],
       },
     },
     mediaIds: {
@@ -139,7 +143,17 @@ export const contributionSchema = {
       items: { type: "string", minLength: 1, maxLength: 100 },
     },
     consent: { const: true },
-    displayName: { type: "string", minLength: 1, maxLength: 30 },
+    displayName: { type: "string", minLength: 0, maxLength: 30 },
+    contentType: { enum: ["photo", "feeling"] },
+    eventProposal: {
+      type: "object",
+      additionalProperties: false,
+      required: ["name", "date"],
+      properties: {
+        name: { type: "string", minLength: 1, maxLength: 100 },
+        date: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },
+      },
+    },
     device: string(80),
     zoom: string(30),
     shotDate: { type: "string", pattern: "^\\d{4}-\\d{2}-\\d{2}$" },

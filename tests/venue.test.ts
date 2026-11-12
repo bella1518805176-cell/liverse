@@ -131,4 +131,19 @@ describe("comparison and submission invariants", () => {
     ])
       expect(validateContribution({ ...valid, ...change })).toBe(false);
   });
+  it("accepts the live submission vocabulary and event proposals", () => {
+    const feeling = {
+      position: { venueId: a.venueId, layoutVersionId: a.layoutVersionId, kind: "section" as const, sectionId: layout.sections[0].id },
+      text: "现场距离适中",
+      tags: ["无遮挡", "屏看得清楚"],
+      mediaIds: [],
+      consent: true,
+      displayName: "",
+      contentType: "feeling" as const,
+      eventProposal: { name: "未收录演出", date: "2026-12-08" },
+    };
+    expect(validateContribution(feeling)).toBe(true);
+    expect(validateContribution({ ...feeling, tags: ["现场氛围"] })).toBe(false);
+    expect(validateContribution({ ...feeling, eventProposal: { name: "演出", date: "12/08/2026" } })).toBe(false);
+  });
 });

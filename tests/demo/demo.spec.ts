@@ -46,7 +46,7 @@ test("Shanghai seating explorer keeps the selected position in one page", async 
   await page.getByRole("button", { name: /演示场次 B/ }).click();
   await expect(page.getByRole("button", { name: "选择场次" })).toContainText("演示场次 B");
   await page.getByRole("button", { name: "1F前区 1排1号" }).click();
-  await expect(page.getByText("上海 LIVERSE · 1F前区 · 1排1号")).toBeVisible();
+  await expect(page.locator(".selection-copy strong")).toHaveText("上海 LIVERSE · 1F前区 · 1排1号");
   await page.getByRole("button", { name: "从这里看舞台" }).click();
   await expect(page.locator(".scene-title")).toHaveText("观众视角");
   await expect(page.locator(".scene-location")).toContainText("1排1号");
@@ -159,4 +159,41 @@ test("public demo server exposes only static assets", async ({ request }) => {
   const home = await request.get("/");
   expect(home.headers()["content-type"]).toContain("text/html");
   expect(home.headers()["cache-control"]).toBe("no-store");
+});
+
+test("three product areas expose field references and the shared submission flow", async ({ page }) => {
+  await page.goto("./");
+  await expect(page.getByRole("navigation", { name: "主导航" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "看视野" })).toHaveClass(/active/);
+  await page.getByRole("button", { name: "1F前区 1排1号" }).click();
+  await expect(page.getByRole("heading", { name: "这个位置的现场参考" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "该位置实拍" })).toHaveClass(/active/);
+  await expect(page.getByText("用户实拍")).toBeVisible();
+  await page.getByRole("button", { name: "在现场" }).click();
+  await expect(page.getByRole("heading", { name: "在现场" })).toBeVisible();
+  await page.getByRole("button", { name: "上传实拍" }).first().click();
+  await expect(page.getByRole("dialog", { name: "上传实拍" })).toBeVisible();
+  await expect(page.getByText("请确认这是实际拍摄位置")).toBeVisible();
+  await page.getByRole("button", { name: "提交实拍" }).click();
+  await expect(page.getByRole("alert")).toContainText("请完成场馆");
+  await page.getByRole("button", { name: "关闭" }).last().click();
+  await page.getByRole("button", { name: "我的" }).click();
+  await expect(page.getByRole("heading", { name: "我的" })).toBeVisible();
+  await expect(page.getByText("还没有投稿记录")).toBeVisible();
+});
+
+test("feeling submissions require consent and appear as pending records", async ({ page }) => {
+  await page.goto("./");
+  await page.getByRole("button", { name: "在现场" }).click();
+  await page.getByRole("button", { name: "分享感受" }).first().click();
+  const dialog = page.getByRole("dialog", { name: "分享感受" });
+  await dialog.getByLabel("实际拍摄分区").selectOption({ label: "前区" });
+  await dialog.getByLabel("现场感受").fill("从前区看舞台很清楚");
+  await dialog.getByRole("button", { name: "提交感受" }).click();
+  await expect(dialog.getByRole("alert")).toContainText("公开授权");
+  await dialog.getByLabel(/我确认内容/).check();
+  await dialog.getByRole("button", { name: "提交感受" }).click();
+  await expect(page.getByRole("heading", { name: "我的" })).toBeVisible();
+  await expect(page.getByText("感受投稿")).toBeVisible();
+  await expect(page.getByText("待审核")).toBeVisible();
 });

@@ -23,6 +23,9 @@ const contentSelect = {
   text: true,
   tags: true,
   displayName: true,
+  contentType: true,
+  eventProposalName: true,
+  eventProposalDate: true,
   source: true,
   state: true,
   createdAt: true,
@@ -124,11 +127,14 @@ export class AppService {
     if (more) rows.pop();
     return {
       items: rows.map((r) => {
-        const { media, _count, ...rest } = r;
+        const { media, _count, eventProposalName, eventProposalDate, ...rest } = r;
         return {
           ...rest,
           mediaIds: media.map((m) => m.id),
           helpfulCount: _count.helpful,
+          ...(eventProposalName && eventProposalDate
+            ? { eventProposal: { name: eventProposalName, date: eventProposalDate } }
+            : {}),
         };
       }),
       nextCursor: more ? rows.at(-1)!.id : null,
@@ -141,11 +147,14 @@ export class AppService {
     });
     if (!c) fail(410, "CONTENT_UNAVAILABLE", "内容已删除、下架或尚未公开");
     await this.layout((c.position as unknown as PositionRef).layoutVersionId);
-    const { media, _count, ...rest } = c;
+    const { media, _count, eventProposalName, eventProposalDate, ...rest } = c;
     return {
       ...rest,
       mediaIds: media.map((m) => m.id),
       helpfulCount: _count.helpful,
+      ...(eventProposalName && eventProposalDate
+        ? { eventProposal: { name: eventProposalName, date: eventProposalDate } }
+        : {}),
     };
   }
   async idempotent<T>(
@@ -189,6 +198,17 @@ export class AppService {
     if (!validateContribution(body))
       fail(400, "INVALID_CONTRIBUTION", "请检查投稿内容、图片数量和公开授权");
     const input = body as ContributionInput;
+    const contentType = input.contentType ?? (input.mediaIds.length ? "photo" : "feeling");
+    if (input.position.kind === "venue" && !official)
+      fail(400, "SECTION_REQUIRED", "请选择实际拍摄分区");
+    if (contentType === "photo" && input.mediaIds.length === 0)
+      fail(400, "PHOTO_REQUIRED", "实拍投稿至少需要一张图片");
+    if (contentType === "feeling" && !input.text.trim())
+      fail(400, "TEXT_REQUIRED", "请填写现场感受");
+    if (!official && !input.eventId && !input.eventProposal)
+      fail(400, "EVENT_REQUIRED", "请选择演出场次或申请补录");
+    if (input.eventProposal && (!input.eventProposal.name.trim() || !/^\d{4}-\d{2}-\d{2}$/.test(input.eventProposal.date)))
+      fail(400, "INVALID_EVENT_PROPOSAL", "请填写演出名称和日期");
     await this.position(input.position);
     if (
       input.eventId &&
@@ -216,7 +236,10 @@ export class AppService {
           position: json(input.position),
           text: input.text.trim(),
           tags: input.tags,
-          displayName: input.displayName.trim(),
+          displayName: input.displayName.trim() || "热心观众",
+          contentType,
+          eventProposalName: input.eventProposal?.name.trim(),
+          eventProposalDate: input.eventProposal?.date,
           eventId: input.eventId || null,
           device: input.device,
           zoom: input.zoom,
