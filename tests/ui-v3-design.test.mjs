@@ -15,6 +15,21 @@ const doc = readFileSync(docPath, 'utf8');
 const svg = readFileSync(svgPath, 'utf8');
 const heroSvg = readFileSync(heroSvgPath, 'utf8');
 
+test('hero headline and LIVERSE branding stay consistent on desktop and mobile', () => {
+  const headline = '属于你的现场，从这里看见';
+  assert.ok(doc.includes(headline));
+  assert.doesNotMatch(doc, /看见你将看到的现场/);
+  assert.doesNotMatch(heroSvg, /看见你将看到的现场/);
+  const scenes = [...heroSvg.matchAll(/<g clip-path="url\(#hero-\d+\)">([\s\S]*?)<\/g>/g)];
+  assert.equal(scenes.length, 2);
+  for (const [, scene] of scenes) {
+    const labels = [...scene.matchAll(/<text\b[^>]*>([\s\S]*?)<\/text>/g)]
+      .map(([, label]) => label.replace(/<[^>]+>/g, ''));
+    assert.ok(labels.includes(headline), 'each viewport must display the complete headline');
+    assert.equal(labels.filter((label) => label === 'LIVERSE').length, 2, 'retain the top wordmark and brand name above the headline');
+  }
+});
+
 test('v3 UI design covers the three current product areas and shared submission rules', () => {
   for (const phrase of ['看视野', '在现场', '我的', '上传实拍', '分享感受', '该位置实拍', '同区实拍', '全馆实拍', '待审核', '已公开', '未通过', '申请补录'])
     assert.ok(doc.includes(phrase), `missing ${phrase}`);

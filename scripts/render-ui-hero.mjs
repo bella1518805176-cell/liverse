@@ -39,8 +39,11 @@ function heroScene(x, y, w, h, imageHref, mobile = false) {
   s += logo(contentX, y + (mobile ? 54 : 64), mobile ? 0.78 : 1);
   s += text(x + w - (mobile ? 24 : 42), y + 55, '上海 LIVERSE', 11, palette.text, 600, 'end');
   s += text(x + w - (mobile ? 24 : 42), y + 76, '场馆影像 / VI 参考', 9, palette.muted, 400, 'end');
-  s += line(contentX, bottomY - 46, contentX + (mobile ? 36 : 54), bottomY - 46, palette.orange, 4);
-  s += text(contentX, bottomY, '看见你将看到的现场', mobile ? 25 : 39, palette.text, 800);
+  s += text(contentX, bottomY - (mobile ? 100 : 80), 'LIVERSE', mobile ? 20 : 24, palette.orange, 800);
+  s += line(contentX, bottomY - (mobile ? 75 : 46), contentX + (mobile ? 36 : 54), bottomY - (mobile ? 75 : 46), palette.orange, 4);
+  s += mobile
+    ? `<text x="${contentX}" y="${bottomY - 34}" fill="${palette.text}" font-size="25" font-weight="800"><tspan x="${contentX}">属于你的现场，</tspan><tspan x="${contentX}" dy="34">从这里看见</tspan></text>`
+    : text(contentX, bottomY, '属于你的现场，从这里看见', 39, palette.text, 800);
   if (mobile) {
     s += text(contentX, bottomY + 31, '从座位出发，提前了解舞台视角与真实现场', 10, palette.muted, 400);
     s += button(contentX, bottomY + 61, 128, '开始看视野', true, 40);
