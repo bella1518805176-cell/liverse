@@ -22,24 +22,24 @@ function button(x, y, w, label, active = false, h = 44) {
   return rect(x, y, w, h, active ? palette.orange : palette.ink, 3, active ? palette.orange : palette.text, active ? 1 : 0.8) + text(x + w / 2, y + h / 2 + 5, label, 13, active ? palette.ink : palette.text, 700, 'middle');
 }
 
-function logo(x, y, scale = 1) {
-  return text(x, y, 'LIVERSE', 28 * scale, palette.orange, 800) + line(x, y + 12 * scale, x + 142 * scale, y + 12 * scale, palette.orange, 3 * scale);
+function logo(x, y, width, imageHref) {
+  return `<image data-role="brand-logo" aria-label="LIVERSE 原版品牌 Logo（放射线 V）" href="${imageHref}" x="${x}" y="${y}" width="${width}" height="${width * 100 / 543}" preserveAspectRatio="xMinYMin meet"/>`;
 }
 
-function heroScene(x, y, w, h, imageHref, mobile = false) {
+function heroScene(x, y, w, h, imageHref, logoHref, mobile = false) {
   const contentX = x + (mobile ? 24 : 42);
   const bottomY = y + h - (mobile ? 168 : 188);
-  let s = `<defs><clipPath id="hero-${x}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/></clipPath></defs>`;
+  let s = `<defs><clipPath id="hero-${x}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/></clipPath><linearGradient id="shade-${x}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${palette.ink}" stop-opacity="0.76"/><stop offset="0.24" stop-color="${palette.ink}" stop-opacity="0.12"/><stop offset="0.48" stop-color="${palette.ink}" stop-opacity="0.28"/><stop offset="0.67" stop-color="${palette.ink}" stop-opacity="0.92"/><stop offset="1" stop-color="${palette.ink}" stop-opacity="1"/></linearGradient></defs>`;
   s += `<g clip-path="url(#hero-${x})">`;
   s += rect(x, y, w, h, palette.ink);
-  s += `<image href="${imageHref}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice" opacity="${mobile ? 0.68 : 0.76}"/>`;
-  s += rect(x, y, mobile ? w : w * 0.62, h, palette.ink, 0, 'none', mobile ? 0.62 : 0.74);
-  s += rect(x, y + h * 0.64, w, h * 0.36, palette.ink, 0, 'none', 0.88);
+  s += `<image data-role="hero-background" href="${imageHref}" x="${x}" y="${y}" width="${w}" height="${h}" preserveAspectRatio="xMidYMid slice"/>`;
+  s += rect(x, y, w, h, `url(#shade-${x})`);
   s += rect(x + 18, y + 18, w - 36, h - 36, 'none', 0, palette.border, 0.55);
-  s += logo(contentX, y + (mobile ? 54 : 64), mobile ? 0.78 : 1);
-  s += text(x + w - (mobile ? 24 : 42), y + 55, '上海 LIVERSE', 11, palette.text, 600, 'end');
-  s += text(x + w - (mobile ? 24 : 42), y + 76, '场馆影像 / VI 参考', 9, palette.muted, 400, 'end');
-  s += text(contentX, bottomY - (mobile ? 100 : 80), 'LIVERSE', mobile ? 20 : 24, palette.orange, 800);
+  s += logo(contentX, y + 34, mobile ? 164 : 220, logoHref);
+  s += line(contentX, y + (mobile ? 78 : 88), contentX + (mobile ? 164 : 220), y + (mobile ? 78 : 88), palette.orange, 3);
+  s += text(x + w - (mobile ? 24 : 42), y + 55, '观演视野', 11, palette.text, 600, 'end');
+  s += text(x + w - (mobile ? 24 : 42), y + 76, '品牌现场影像', 9, palette.muted, 400, 'end');
+  s += logo(contentX, bottomY - (mobile ? 116 : 100), mobile ? 110 : 130, logoHref);
   s += line(contentX, bottomY - (mobile ? 75 : 46), contentX + (mobile ? 36 : 54), bottomY - (mobile ? 75 : 46), palette.orange, 4);
   s += mobile
     ? `<text x="${contentX}" y="${bottomY - 34}" fill="${palette.text}" font-size="25" font-weight="800"><tspan x="${contentX}">属于你的现场，</tspan><tspan x="${contentX}" dy="34">从这里看见</tspan></text>`
@@ -66,22 +66,25 @@ function heroScene(x, y, w, h, imageHref, mobile = false) {
 
 export async function renderHero() {
   const root = fileURLToPath(new URL('../', import.meta.url));
-  const source = path.join(root, 'tmp/vi-pages/shanghai-6-06.png');
-  const image = await sharp(source).extract({ left: 30, top: 83, width: 372, height: 470 }).png().toBuffer();
+  const [image, logoImage] = await Promise.all([
+    readFile(path.join(root, 'output/ui/assets/liverse-live-audience.png')),
+    readFile(path.join(root, 'output/ui/assets/liverse-logo-reference.png')),
+  ]);
   const imageHref = `data:image/png;base64,${image.toString('base64')}`;
+  const logoHref = `data:image/png;base64,${logoImage.toString('base64')}`;
   const width = 1440;
   const height = 1180;
   let svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" font-family="Microsoft YaHei, PingFang SC, sans-serif"><title>LIVERSE Hero 入口页 UI 示意</title><desc>以 VI 场馆影像作为入口承接，主入口进入看视野，次入口进入在现场，底部保留三板块导航。</desc>`;
   svg += rect(0, 0, width, height, palette.ink);
   svg += text(54, 68, 'LIVERSE  /  HERO 入口承接页', 36, palette.text, 800);
-  svg += text(54, 106, '真实场馆影像 · 黑色内容层 · 开始看视野 / 进入在现场 · 2026.11.13', 18, palette.muted);
+  svg += text(54, 106, '原版品牌 Logo · 品牌现场影像 · 开始看视野 / 进入在现场 · 2026.11.13', 18, palette.muted);
   svg += line(54, 136, 178, 136, palette.orange, 5);
   svg += text(54, 174, '首屏先建立现场感，再把用户送进真实可用的三板块功能。', 18, palette.text, 500);
-  svg += text(54, 210, '图片来源：上海 LIVERSE VI 场馆介绍资料中的场馆影像，正式上线需确认授权。', 13, palette.muted, 400);
+  svg += text(54, 210, '素材：Logo 提取自用户提供的品牌参考图；背景使用去除左上标题后的观众区影像。', 13, palette.muted, 400);
   svg += text(54, 258, '桌面端  1440 × 900 内容区', 16, palette.text, 700);
-  svg += heroScene(54, 282, 780, 812, imageHref, false);
+  svg += heroScene(54, 282, 780, 812, imageHref, logoHref, false);
   svg += text(900, 258, '移动端  390 × 844', 16, palette.text, 700);
-  svg += heroScene(900, 282, 360, 812, imageHref, true);
+  svg += heroScene(900, 282, 360, 812, imageHref, logoHref, true);
   svg += rect(1292, 282, 94, 812, palette.panel, 8, palette.border);
   svg += text(1310, 318, '承接逻辑', 14, palette.orange, 700);
   svg += line(1310, 334, 1350, 334, palette.orange, 3);

@@ -1,0 +1,53 @@
+{
+  "description": "User-supplied brand and venue imagery for Hero design; not seat-specific user submissions.",
+  "assets": [
+    {
+      "file": "liverse-logo-reference.png",
+      "source": "codex-clipboard-f748cc19-f5b7-4a08-9638-70f125f9d423.png",
+      "sourceSha256": "a2a53907a7241fee1deb402598f67b72d60c6eb06865f929675b8ab49b291139",
+      "sha256": "0d2e6a2d1bbf1e223d6bbdf2087d703a9876f7312959099484565ab0f93e3481",
+      "role": "brand-logo",
+      "crop": {
+        "left": 65,
+        "top": 41,
+        "width": 543,
+        "height": 100
+      },
+      "width": 543,
+      "height": 100,
+      "treatment": "Extract original orange logo pixels; preserve the radiating V; make the dark background transparent."
+    },
+    {
+      "file": "liverse-stage-balcony.png",
+      "source": "codex-clipboard-fa0f5c30-015c-4b52-b8f3-96c10d026831.png",
+      "sourceSha256": "7777d1092723bacdee3c81d8d25966fad84695da5c3f1348adc62e352ca610d9",
+      "sha256": "cf73174ff057746ae587ff37014d79da39c03125ec362369ba5e88696e1a8fc2",
+      "role": "alternate-background",
+      "crop": {
+        "left": 6,
+        "top": 155,
+        "width": 1363,
+        "height": 617
+      },
+      "width": 1363,
+      "height": 617,
+      "treatment": "Crop the upper title, orange rule and screenshot border; retain the stage and audience-area photograph."
+    },
+    {
+      "file": "liverse-live-audience.png",
+      "source": "beijing-audience-floorplan-removed.png",
+      "sourceSha256": "027de78547f7a0a179913fdd46f7fb5810751d3a48d616fc7a994b00a94f76e2",
+      "sha256": "8547b621e29d65a0b94d7cef30a7d80a52fe65ac0e38d01c4b03f27c6daa44c3",
+      "role": "primary-background",
+      "crop": {
+        "left": 0,
+        "top": 710,
+        "width": 6400,
+        "height": 2890
+      },
+      "width": 2048,
+      "height": 925,
+      "treatment": "Crop the upper title and orange rule; retain the existing user-supplied edited stage/audience image."
+    }
+  ]
+}
