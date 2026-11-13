@@ -4,7 +4,7 @@
 
 配套[UI设计方案 v2](output/ui/LIVERSE_座位视野模拟器_UI设计方案.md)与[单页状态示意图](output/ui/LIVERSE_UI方向与页面结构.png)已按该范围调整，延续原有橙黑白配色。
 
-当前三板块功能的品牌方案见[UI设计方案 v3](output/ui/LIVERSE_看视野在现场我的_UI设计方案_v3.md)与[全深色架构示意图](output/ui/LIVERSE_看视野在现场我的_UI架构示意.png)。本版将看视野、在现场、我的以及实拍投稿统一到 LIVERSE 黑橙白 VI 系统。
+当前三板块功能的品牌方案见[UI设计方案 v3](output/ui/LIVERSE_看视野在现场我的_UI设计方案_v3.md)、[全深色架构示意图](output/ui/LIVERSE_看视野在现场我的_UI架构示意.png)和[Hero入口页示意图](output/ui/LIVERSE_Hero入口页_UI示意.png)。本版将看视野、在现场、我的以及实拍投稿统一到 LIVERSE 黑橙白 VI 系统，并用真实场馆影像承接进入功能。
 
 北京 LIVERSE 原生微信小程序、NestJS API、图片 Worker 与 React 运营后台。当前交付为可运行的开发版本，正式场馆坐标、模型校准、微信与腾讯云联调和真机验收尚未完成。
 
