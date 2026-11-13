@@ -15,6 +15,20 @@ const heroPngPath = path.join(root, 'output/ui/LIVERSE_Hero入口页_UI示意.pn
 const doc = readFileSync(docPath, 'utf8');
 const svg = readFileSync(svgPath, 'utf8');
 const heroSvg = readFileSync(heroSvgPath, 'utf8');
+const completeDocPath = path.join(root, 'output/ui/LIVERSE_完整UI设计方案_v4.md');
+const completeDoc = readFileSync(completeDocPath, 'utf8');
+
+test('complete v4 UI delivery document covers final brand, flows and asset links', () => {
+  for (const phrase of ['完整 UI 设计方案', 'Hero 入口页', '看视野', '在现场', '我的', '属于你的现场，从这里看见', '从这里看舞台', '上传实拍', '分享感受', '素材交付与来源', '开发交付检查清单'])
+    assert.ok(completeDoc.includes(phrase), `missing complete document phrase ${phrase}`);
+  for (const color of ['#FF5018', '#0B0D10', '#171A1F', '#242A32', '#F5F6F7', '#A8ADB5', '#68727E'])
+    assert.ok(completeDoc.includes(color), `missing final token ${color}`);
+  for (const match of completeDoc.matchAll(/\[[^\]]+\]\((<[^>]+>|[^)\s]+)\)/g)) {
+    const target = match[1].replace(/^<|>$/g, '');
+    if (/^(?:https?:|#)/i.test(target)) continue;
+    assert.ok(existsSync(path.resolve(path.dirname(completeDocPath), decodeURIComponent(target.split('#')[0]))), `broken v4 link ${target}`);
+  }
+});
 
 test('hero headline and LIVERSE branding stay consistent on desktop and mobile', () => {
   const headline = '属于你的现场，从这里看见';
