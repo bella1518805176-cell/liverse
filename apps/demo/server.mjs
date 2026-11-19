@@ -14,6 +14,7 @@ const types = {
   ".css": "text/css; charset=utf-8",
   ".jpg": "image/jpeg",
   ".png": "image/png",
+  ".webp": "image/webp",
 };
 const server = http.createServer(async (req, res) => {
   if (req.method !== "GET" && req.method !== "HEAD") {
@@ -32,7 +33,7 @@ const server = http.createServer(async (req, res) => {
     if (
       pathname !== "/" &&
       pathname !== "/index.html" &&
-      !/^\/assets\/[a-zA-Z0-9_.-]+\.(js|css|jpg|png)$/.test(pathname)
+      !/^\/assets\/[a-zA-Z0-9_.-]+\.(js|css|jpg|png|webp)$/.test(pathname)
     ) {
       res.writeHead(404).end("Not found");
       return;

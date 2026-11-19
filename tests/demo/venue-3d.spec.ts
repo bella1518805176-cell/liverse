@@ -17,6 +17,7 @@ test("3D renders the 1208-seat model, picks actual chairs and preserves 2D / aud
   const requests: string[] = [];
   page.on("request", (r) => requests.push(r.url()));
   await page.goto("./");
+  await page.getByRole("button", { name: "开始看视野" }).click();
   expect(requests.some((r) => /Venue3D-.*\.js/.test(r))).toBe(false);
   await page.getByRole("button", { name: "3D 视图", exact: true }).click();
   const canvas = page.locator(".venue-canvas");
@@ -82,6 +83,7 @@ test("3D renders the 1208-seat model, picks actual chairs and preserves 2D / aud
 
 test("3D reports context loss and can reload without blocking 2D", async ({ page }) => {
   await page.goto("./");
+  await page.getByRole("button", { name: "开始看视野" }).click();
   await page.getByRole("button", { name: "3D 视图", exact: true }).click();
   await expect(page.locator(".venue-canvas")).toHaveAttribute("data-ready", "true");
   await page.locator(".venue-canvas").evaluate((canvas) => canvas.dispatchEvent(new Event("webglcontextlost", { cancelable: true })));

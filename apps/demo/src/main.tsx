@@ -80,6 +80,7 @@ function buildSeats(floor: Floor): Seat[] {
 
 function App() {
   const [tab, setTab] = useState<Tab>("look");
+  const [landing, setLanding] = useState(true);
   const [floor, setFloor] = useState<Floor>("1F");
   const [positionFloor, setPositionFloor] = useState<Floor>("1F");
   const [positionRow, setPositionRow] = useState(1);
@@ -209,9 +210,32 @@ function App() {
     <div className="reference-actions"><button className="primary-action" onClick={() => openComposer("photo")}><ImagePlus size={16} />上传实拍</button><button className="secondary-action" onClick={() => openComposer("feeling")}><Send size={15} />分享感受</button></div>
   </section>;
 
-  return <main className="app-shell">
+  return <main className={`app-shell ${landing ? "landing-shell" : ""}`}>
+    {landing ? <>
+      <header className="landing-topbar">
+        <img className="landing-logo" src="/assets/liverse-logo-reference.png" alt="LIVERSE" />
+        <div className="landing-topline"><strong>观演视野</strong><span>品牌现场影像</span></div>
+      </header>
+      <section className="landing-hero" aria-label="LIVERSE 入口">
+        <div className="landing-content">
+          <img className="landing-content-logo" src="/assets/liverse-logo-reference.png" alt="LIVERSE" />
+          <span className="landing-rule" />
+          <h1>属于你的现场，从这里看见</h1>
+          <p>从座位出发，提前了解舞台视角与真实现场</p>
+          <div className="landing-actions">
+            <button className="landing-primary" onClick={() => { setTab("look"); setLanding(false); }}>开始看视野</button>
+            <button className="landing-secondary" onClick={() => { setTab("onsite"); setLanding(false); }}>进入在现场</button>
+          </div>
+        </div>
+      </section>
+      <nav className="bottom-nav landing-nav" aria-label="主导航">
+        <button className={tab === "look" ? "active" : ""} onClick={() => { setTab("look"); setLanding(false); }}><MapPin size={18} /><span>看视野</span></button>
+        <button className={tab === "onsite" ? "active" : ""} onClick={() => { setTab("onsite"); setLanding(false); }}><Camera size={18} /><span>在现场</span></button>
+        <button className={tab === "me" ? "active" : ""} onClick={() => { setTab("me"); setLanding(false); }}><UserRound size={18} /><span>我的</span></button>
+      </nav>
+    </> : <>
     <header className="topbar">
-      <div className="brand-mark">L<span>·</span></div>
+      <img className="brand-logo" src="/assets/liverse-logo-reference.png" alt="LIVERSE" />
       <button className="context-button venue-choice" onClick={() => setSheet("venue")} aria-label="选择场馆">
         <span className="venue-pin"><MapPin size={15} /></span><span><strong>上海 LIVERSE</strong><small>上海 · 音宇宙艺术中心</small></span><ChevronDown size={15} />
       </button>
@@ -345,6 +369,7 @@ function App() {
       </section>
     </div>}
     <div className="safe-bottom" />
+    </>}
   </main>;
 }
 

@@ -4,6 +4,6 @@ export default defineConfig({
   root: "apps/demo",
   base: "./",
   plugins: [react()],
-  publicDir: false,
+  publicDir: "public",
   build: { outDir: "../../dist/demo", emptyOutDir: true },
 });
