@@ -151,7 +151,7 @@ export function placementSvg(data) {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const data = buildPlacement();
-  const files = [['docs/data/shanghai-3d-placement-estimate.json', JSON.stringify(data, null, 2) + '\n'], ['docs/data/shanghai-1208-estimated-positions.csv', placementCsv(data)], ['docs/figures/shanghai-estimated-placement.svg', placementSvg(data)]];
+  const files = [['apps/demo/src/mock/shanghai-3d-placement-estimate.json', JSON.stringify(data, null, 2) + '\n'], ['docs/data/shanghai-1208-estimated-positions.csv', placementCsv(data)], ['docs/figures/shanghai-estimated-placement.svg', placementSvg(data)]];
   for (const [name, content] of files) {
     const path = new URL(name, root);
     if (process.argv.includes('--check')) {

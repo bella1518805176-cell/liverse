@@ -19,7 +19,6 @@
     "apps/admin/vite.config.ts",
     "apps/guest",
     "apps/demo/src",
-    "apps/demo/vite.config.ts",
     "packages",
     "fixtures",
     "scripts",

@@ -6,7 +6,7 @@
 
 交付文件：
 
-- [1208座估算坐标 JSON](data/shanghai-3d-placement-estimate.json)：参数、坐标系、逐排尺寸、每座XYZ/朝向/估算状态及来源。
+- [1208座估算坐标 JSON](../apps/demo/src/mock/shanghai-3d-placement-estimate.json)：参数、坐标系、逐排尺寸、每座XYZ/朝向/估算状态及来源。
 - [1208座估算坐标 CSV](data/shanghai-1208-estimated-positions.csv)：可用于建模软件或前端导入，含网页米制坐标及原SKP坐标。
 - [560mm椅距推算的CAD参考点](data/shanghai-chair-reference.json)：旧图567个重复参考点及最近邻统计。
 - [等比例俯视预览](figures/shanghai-estimated-placement.svg)：一楼与二楼分开显示；SVG内可查看每个点的座位ID和估算XYZ。

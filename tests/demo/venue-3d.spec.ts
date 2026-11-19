@@ -1,6 +1,6 @@
 import { test, expect, type Locator } from "@playwright/test";
 import { PerspectiveCamera, Vector3 } from "three";
-import placement from "../../docs/data/shanghai-3d-placement-estimate.json" with { type: "json" };
+import placement from "../../apps/demo/src/mock/shanghai-3d-placement-estimate.json" with { type: "json" };
 
 async function projection(canvas: Locator, position: number[]) {
   const pose = await canvas.evaluate((c: HTMLCanvasElement) => ({ position: c.dataset.cameraPosition!, quaternion: c.dataset.cameraQuaternion!, fov: Number(c.dataset.cameraFov), width: c.clientWidth, height: c.clientHeight }));

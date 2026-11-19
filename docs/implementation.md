@@ -4,11 +4,7 @@
 
 ## 独立体验版
 
-新增 `apps/demo` 静态体验入口，共用浏览器选位与渲染器，内置明确标注的开发布局，不访问 API、数据库或运营后台。`pnpm build:demo` 输出 `dist/demo`，可由任意 HTTPS 静态服务托管，也可用随包的 Node.js 服务在局域网分享；`pnpm test:demo` 的 4 项桌面／手机测试验证完整选位、3D 非空画面与环顾、坐站姿、收藏、对比、无剪贴板时的分享回退及只读静态服务。
-
-2026-10-27 已通过 `lark-apps` 发布独立体验版：[线上 Demo](https://miracleplus.feishu.link/app/app_17gv6eymhad)。发布 ID `7701164809568750623` 返回 `finished`，对应托管提交 `53c2b6275462e30b72ce0c6d6cdc31fe77759e2e`；回读确认公开访问、`require_login=false`。全新未登录 Chrome 的桌面和手机视口均通过完整体验测试（2 项）；平台网关不运行本机静态服务契约（另 2 项仅在本机验证）。根仓库 10 项文档与 30 项单元／集成测试及三端类型检查通过，托管工程类型、ESLint 与构建通过。
-
-图片使用该应用独立存储的 30 天签名，最早到期为北京时间 **2026-11-26 10:03:36**，到期前须重新签发并发布。此期限适用于参考图片，不是 Demo 页面期限。托管配置与发布标识见 `infra/demo-hosting.json`；`scripts/export-demo-cloud.ts` 将现有源码同步到 `.local/liverse-demo-cloud`，保留平台部署结构。此浏览器体验版不等于微信体验版或正式场馆服务。
+`apps/demo` 是可独立构建的上海 Vite SPA。座位与参考内容来自 mock JSON，图片随构建发布，投稿文字和照片分别保存在浏览器 localStorage 与 IndexedDB。通过 GitHub 与 Cloudflare Pages 部署，不需要 API、数据库或运营后台。命令和发布配置见[仓库说明](../README.md)。
 
 ## 已实现
 

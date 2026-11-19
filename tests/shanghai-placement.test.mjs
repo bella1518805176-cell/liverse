@@ -137,7 +137,7 @@ test('chair footprints do not overlap within either floor', () => {
 
 test('committed estimate, CSV and figure match their reproducible calculation', () => {
   const read = (name) => readFileSync(new URL(`../${name}`, import.meta.url), 'utf8');
-  assert.deepEqual(JSON.parse(read('docs/data/shanghai-3d-placement-estimate.json')), data);
+  assert.deepEqual(JSON.parse(read('apps/demo/src/mock/shanghai-3d-placement-estimate.json')), data);
   assert.equal(read('docs/data/shanghai-1208-estimated-positions.csv').replaceAll('\r\n', '\n'), placementCsv(data).replaceAll('\r\n', '\n'));
   assert.equal(read('docs/figures/shanghai-estimated-placement.svg').replaceAll('\r\n', '\n'), placementSvg(data));
   const doc = read('docs/shanghai-3d-placement-estimate.md');

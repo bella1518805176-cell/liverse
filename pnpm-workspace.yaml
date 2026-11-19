@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - "!apps/demo"
 verifyDepsBeforeRun: false
 overrides:
   "@types/three": 0.133.0

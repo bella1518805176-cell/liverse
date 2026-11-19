@@ -1,6 +1,6 @@
 # 上海1208座3D模块
 
-本版将网页的3D占位替换为可交互尺寸简模。座位使用[落位估算数据](data/shanghai-3d-placement-estimate.json)，1F 800座、2F 408座；一楼560mm椅距、900mm排距，二楼每排一阶、495mm阶高和900mm径向进深。
+本版将网页的3D占位替换为可交互尺寸简模。座位使用[落位估算数据](../apps/demo/src/mock/shanghai-3d-placement-estimate.json)，1F 800座、2F 408座；一楼560mm椅距、900mm排距，二楼每排一阶、495mm阶高和900mm径向进深。
 
 ## 页面使用
 

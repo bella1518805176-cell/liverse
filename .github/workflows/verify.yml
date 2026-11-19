@@ -19,3 +19,20 @@ jobs:
         with:
           name: liverse-build
           path: dist/
+  public-demo:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: apps/demo/.node-version
+          cache: npm
+          cache-dependency-path: apps/demo/package-lock.json
+      - run: npm ci
+        working-directory: apps/demo
+      - run: npm run build
+        working-directory: apps/demo
+      - run: npm exec --yes --package=@playwright/test@1.64.1 -- playwright install chrome
+      - run: npm install -g pnpm@11.25.0
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:demo

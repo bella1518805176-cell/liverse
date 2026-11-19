@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import { findModelSeat, modelSeats, modelSpec, tierRows, venueParameters, type CameraMode, type Floor, type ModelSeat, type SeatRef } from "./venue-data";
+import { findModelSeat, modelSeatCounts, modelSeats, modelSpec, tierRows, venueParameters, type CameraMode, type Floor, type ModelSeat, type SeatRef } from "./venue-data";
 
 export type VisibleFloor = "all" | Floor;
 export type SceneState = { mode: CameraMode; selected: SeatRef | null; floor: VisibleFloor; lens: 1 | 2 };
@@ -101,7 +101,7 @@ export function createVenueScene(canvas: HTMLCanvasElement, onPick: (seat: Model
   box(lower, foh.width_x_m, foh.height_y_m, foh.depth_z_m, 0, foh.height_y_m / 2, (foh.front_z_m + foh.rear_z_m) / 2, dark);
   box(lower, 2.8, 0.08, 6.7, 0, 1.24, 17.5, metal);
   for (const z of [15.4, 17.5, 19.5]) box(lower, 1.4, 0.32, 0.55, 0, 1.42, z, stageMat);
-  const overviewLabels = [label("FOH / 控台", 0, 2.3, 17.5, 3.5, lower), label("1F · 800", -12.3, 1, 7, 3, lower), label("2F · 408", 12.4, 10.8, 22, 3, upper)];
+  const overviewLabels = [label("FOH / 控台", 0, 2.3, 17.5, 3.5, lower), label(`1F · ${modelSeatCounts["1F"]}`, -12.3, 1, 7, 3, lower), label(`2F · ${modelSeatCounts["2F"]}`, 12.4, 10.8, 22, 3, upper)];
 
   const centerZ = venueParameters.floor2.center_web_xz_m[1];
   const radiusPoint = (r: number, x: number, y: number) => new THREE.Vector3(x, y, centerZ + Math.sqrt(r * r - x * x));

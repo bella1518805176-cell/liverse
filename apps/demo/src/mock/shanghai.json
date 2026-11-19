@@ -1,0 +1,48 @@
+{
+  "venue": { "name": "上海 LIVERSE", "subtitle": "上海 · 音宇宙艺术中心", "city": "上海" },
+  "shows": [
+    { "id": "A", "name": "演示场次 A" },
+    { "id": "B", "name": "演示场次 B" }
+  ],
+  "contentTags": ["无遮挡", "栏杆遮挡", "音响遮挡", "屏看得清楚", "距离较远"],
+  "sectionOptions": ["前区", "中区", "后区", "固定坐席"],
+  "layout": {
+    "1F": {
+      "height": 920,
+      "stagePath": "M350 47 Q500 20 650 47 L635 93 Q500 114 365 93Z",
+      "labelX": 130,
+      "note": "1F 前区 480 座、中区 224 座、后区 96 座，合计 800 个坐席。",
+      "control": { "x": 466, "y": 500, "width": 68, "height": 196 },
+      "sections": [
+        { "area": "前区", "firstRow": 1, "rows": 12, "seats": 40, "y": 150, "dy": 25, "center": 500 },
+        { "area": "中区", "firstRow": 13, "rows": 7, "seats": 32, "y": 510, "dy": 27, "starts": [180, 550] },
+        { "area": "后区", "firstRow": 20, "rows": 4, "seats": 24, "y": 780, "dy": 31, "starts": [260, 550] }
+      ],
+      "seatSpacing": 18
+    },
+    "2F": {
+      "height": 650,
+      "stagePath": "M350 44 Q500 20 650 44 L635 78 Q500 96 365 78Z",
+      "labelX": 40,
+      "note": "2F 左区 111 座、中区 187 座、右区 110 座，共 408 座；无遮挡 393 座，有遮挡 15 座。",
+      "area": "固定坐席",
+      "groups": [[6, 17, 6], [9, 17, 8], [10, 17, 10], [10, 17, 10], [11, 17, 11], [11, 17, 11], [11, 17, 11], [11, 17, 11], [11, 17, 11], [10, 17, 10], [6, 17, 6], [5, 0, 5]],
+      "anchors": [280, 340, 720],
+      "obstructed": [[2, 1], [3, 1], [3, 37], [4, 1], [4, 37], [5, 1], [5, 39], [6, 1], [6, 39], [7, 1], [7, 39], [8, 1], [8, 39], [9, 1], [9, 39]],
+      "y": 152,
+      "dy": 34,
+      "seatSpacing": 20
+    }
+  },
+  "model": {
+    "floorWidth": 29.05, "floorDepth": 29.58, "stageHeight": 1.5, "stageDepth": 9,
+    "screenWidth": 33.28, "screenHeight": 12, "screenBottom": 2, "screenRadius": 15,
+    "eyeHeight": 1.2, "target": [0, 3.6, -4.5], "obstructed1FFirstRow": 20
+  },
+  "content": [
+    { "id": "seat-a", "kind": "photo", "scope": "seat", "floor": "1F", "area": "前区", "row": 1, "number": 1, "show": "演示场次 A", "text": "舞台正面，屏幕和舞台都很清楚。", "tags": ["无遮挡", "屏看得清楚"], "displayName": "热心观众", "photo": "seat-front", "state": "published" },
+    { "id": "section-a", "kind": "photo", "scope": "section", "floor": "1F", "area": "前区", "row": 4, "number": 18, "show": "演示场次 A", "text": "前区视野参考，现场灯光很有氛围。", "tags": ["无遮挡"], "displayName": "LIVERSE观众", "photo": "section-front", "state": "published" },
+    { "id": "venue-b", "kind": "photo", "scope": "venue", "show": "演示场次 B", "text": "从入口到观众区的现场记录。", "tags": ["无遮挡"], "displayName": "现场的你", "photo": "venue-wide", "state": "published" },
+    { "id": "feeling-a", "kind": "feeling", "scope": "section", "floor": "1F", "area": "中区", "row": 14, "show": "演示场次 A", "text": "中区距离适中，建议提前确认控台位置。", "tags": ["距离较远"], "displayName": "观众小林", "state": "published" }
+  ]
+}

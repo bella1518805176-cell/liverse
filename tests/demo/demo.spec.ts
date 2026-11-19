@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { readFile, readdir } from "node:fs/promises";
 
 test("Shanghai seating explorer keeps the selected position in one page", async ({ page }, testInfo) => {
   const errors: string[] = [];
@@ -149,22 +150,35 @@ test("2F matches the reference blocks, aisle alignment and 15 obstructed seats",
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
 
-test("public demo server exposes only static assets", async ({ request }) => {
-  test.skip(!!process.env.DEMO_BASE_URL, "Local static server contract is tested separately from the managed hosting gateway");
-  const repairPath = await request.get("/%E4%BF%AE%E5%A4%8D", { maxRedirects: 0 });
-  expect(repairPath.status()).toBe(302);
-  expect(repairPath.headers().location).toBe("/");
-  for (const path of ["/api/v1/admin/me", "/api/v1/health", "/server.mjs", "/.env", "/README.txt", "/assets/../../package.json"]) {
-    expect((await request.get(path)).status()).toBe(404);
-  }
-  expect((await request.post("/")).status()).toBe(405);
-  const home = await request.get("/");
-  expect(home.headers()["content-type"]).toContain("text/html");
-  expect(home.headers()["cache-control"]).toBe("no-store");
-  const heroImage = await request.get("/assets/liverse-live-audience.webp");
-  expect(heroImage.status()).toBe(200);
-  expect(heroImage.headers()["content-type"]).toContain("image/webp");
-  expect((await request.get("/assets/liverse-logo-reference.png")).status()).toBe(200);
+test("Pages build contains the SPA rewrite and only public assets", async () => {
+  test.skip(!!process.env.DEMO_BASE_URL, "This checks the local build directory");
+  const dist = "apps/demo/dist";
+  expect(await readFile(`${dist}/_redirects`, "utf8")).toMatch(/^\/\* \/index\.html 200\r?\n?$/);
+  expect((await readdir(dist)).sort()).toEqual(["_redirects", "assets", "index.html"]);
+  const assets = await readdir(`${dist}/assets`);
+  expect(assets).toEqual(expect.arrayContaining([
+    expect.stringMatching(/^liverse-logo-reference-.+\.png$/),
+    expect.stringMatching(/^liverse-live-audience-.+\.webp$/),
+  ]));
+  expect(assets.every((file) => /\.(css|js|png|webp)$/.test(file))).toBe(true);
+});
+
+test("SPA sections open directly and preserve navigation across refresh and history", async ({ page }) => {
+  const response = await page.goto("./onsite/");
+  expect(response?.status()).toBe(200);
+  await expect(page.getByRole("heading", { name: "在现场" })).toBeVisible();
+  await page.getByRole("button", { name: "看视野", exact: true }).click();
+  await expect(page).toHaveURL(/\/seats$/);
+  await page.reload();
+  await expect(page.getByRole("heading", { name: "找到你的现场位置" })).toBeVisible();
+  const logo = page.locator(".brand-logo");
+  await expect.poll(() => logo.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
+  await page.goBack();
+  await expect(page.getByRole("heading", { name: "在现场" })).toBeVisible();
+  await page.goForward();
+  await expect(page.getByRole("heading", { name: "找到你的现场位置" })).toBeVisible();
+  await page.goto("./me");
+  await expect(page.getByRole("heading", { name: "我的" })).toBeVisible();
 });
 
 test("three product areas expose field references and the shared submission flow", async ({ page }) => {
@@ -203,6 +217,32 @@ test("feeling submissions require consent and appear as pending records", async 
   await expect(page.getByRole("heading", { name: "我的" })).toBeVisible();
   await expect(page.getByText("感受投稿")).toBeVisible();
   await expect(page.getByText("待审核")).toBeVisible();
+  await page.reload();
+  await expect(page.getByText("感受投稿")).toBeVisible();
+  await expect(page.getByText("待审核")).toBeVisible();
+});
+
+test("photo submissions restore their preview on refresh and stay in the same browser", async ({ page, browser }) => {
+  await page.goto("./onsite");
+  await page.getByRole("button", { name: "上传实拍" }).first().click();
+  const dialog = page.getByRole("dialog", { name: "上传实拍" });
+  await dialog.getByLabel("实际拍摄分区").selectOption({ label: "前区" });
+  await dialog.getByLabel("选择现场照片").setInputFiles("apps/demo/src/assets/liverse-logo-reference.png");
+  await expect(dialog.getByAltText("liverse-logo-reference.png")).toBeVisible();
+  await dialog.getByLabel(/我确认内容/).check();
+  await dialog.getByRole("button", { name: "提交实拍" }).click();
+  await expect(page).toHaveURL(/\/me$/);
+  await page.reload();
+  const preview = page.getByAltText("待审核实拍");
+  await expect.poll(() => preview.evaluate((node: HTMLImageElement) => node.naturalWidth)).toBe(543);
+  await expect(page.getByText("待审核")).toBeVisible();
+  const other = await browser.newPage();
+  try {
+    await other.goto(page.url());
+    await expect(other.getByText("还没有投稿记录")).toBeVisible();
+  } finally {
+    await other.close();
+  }
 });
 
 test("entry page matches the hero flow and its actions open the existing sections", async ({ page }, testInfo) => {

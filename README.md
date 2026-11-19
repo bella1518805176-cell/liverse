@@ -1,12 +1,57 @@
 # LIVERSE 观演视野
 
-当前下一版 Demo 设计见[上海首版 Demo 产品设计](docs/demo-product-design.md)：上海单馆、指定真实2D座位图、场馆／场次与楼层切换、同页选位及三种3D模式占位。以下运行与线上体验说明描述既有实现，尚未按新方案改版。
+LIVERSE 是一个无需账号的上海演出场馆 Demo：在 2D 座位图里选座，切换 3D 视角看舞台，并体验现场投稿。
+
+设计基线见[上海首版 Demo 产品设计](docs/demo-product-design.md)。当前 Demo 使用上海单馆、两层座位和可交互 3D 估算模型。
 
 配套[UI设计方案 v2](output/ui/LIVERSE_座位视野模拟器_UI设计方案.md)与[单页状态示意图](output/ui/LIVERSE_UI方向与页面结构.png)已按该范围调整，延续原有橙黑白配色。
 
 当前三板块功能的完整交付方案见[UI设计方案 v4](output/ui/LIVERSE_完整UI设计方案_v4.md)。迭代过程和详细架构仍保留在[UI设计方案 v3](output/ui/LIVERSE_看视野在现场我的_UI设计方案_v3.md)、[全深色架构示意图](output/ui/LIVERSE_看视野在现场我的_UI架构示意.png)和[Hero入口页示意图](output/ui/LIVERSE_Hero入口页_UI示意.png)。本版将看视野、在现场、我的以及实拍投稿统一到 LIVERSE 黑橙白 VI 系统，并用真实场馆影像承接进入功能。
 
-北京 LIVERSE 原生微信小程序、NestJS API、图片 Worker 与 React 运营后台。当前交付为可运行的开发版本，正式场馆坐标、模型校准、微信与腾讯云联调和真机验收尚未完成。
+## 运行公开 Demo
+
+需要 Node.js 24。进入 [apps/demo](apps/demo) 后运行：
+
+```sh
+cd apps/demo
+npm install
+npm run dev
+```
+
+开发地址为 [localhost:5173](http://localhost:5173/)。在同一目录运行 `npm run build` 生成 `dist/`，再运行 `npm run preview` 从 [127.0.0.1:4173](http://127.0.0.1:4173/) 体验生产构建。
+
+## 部署到 Cloudflare Pages
+
+将仓库推送到 GitHub 后，在 Cloudflare 控制台创建一个 **Pages** 项目，选择 **Connect to Git**，绑定该仓库，并填写下列参数：
+
+| 配置 | 值 |
+| --- | --- |
+| 生产分支 | `main` |
+| 根目录 | `apps/demo` |
+| 框架预设 | None |
+| 构建命令 | `npm ci && npm run build` |
+| 输出目录（相对于根目录） | `dist` |
+| 构建环境变量 | `NODE_VERSION=24`、`SKIP_DEPENDENCY_INSTALL=1` |
+| 生产分支自动部署 | 启用 |
+
+首次绑定并构建成功后，Pages 会给出可公开访问的 `pages.dev` 地址。随后 `git push origin main` 会自动更新同一地址。访客可以直接打开；无需开启 Cloudflare Access。站点部署在域名根路径；Vite 会处理相对导入的图片，`public/_redirects` 会复制到产物，使 `/seats`、`/onsite` 和 `/me` 可以直达和刷新。
+
+## Demo 使用与限制
+
+- **看视野**：选择场次和楼层，在 2D 图上选位，然后从该位置看舞台，或查看 3D 总览和手机取景。
+- **在现场**：按场次、分区、内容类型和标签看示例；可模拟投稿。**我的**显示本机模拟待审核记录。
+- 投稿文字保存在 localStorage，图片保存在 IndexedDB，不会上传或公开。刷新后可恢复；更换设备、浏览器或站点域名会使用独立存储，清除站点数据会删除记录。隐私模式或浏览器策略可能限制存储。
+- 座位与模型用于演示，视野为估算；现场参考列表是样例。3D 需要 WebGL，可用 2D 图继续选位。
+
+## 后续迭代
+
+- [mock/shanghai.json](apps/demo/src/mock/shanghai.json) 管理场馆、场次、布局和参考内容；[3D 落位数据](apps/demo/src/mock/shanghai-3d-placement-estimate.json) 管理逐座坐标。可在 [demo-data.ts](apps/demo/src/demo-data.ts) 和 [venue-data.ts](apps/demo/src/venue-data.ts) 将 JSON 数据源替换成后端接口。
+- [submissions.ts](apps/demo/src/submissions.ts) 集中处理投稿读写。接入服务端后，可将文字写入数据库，照片写入对象存储，并从审核接口读取状态。
+- Demo 当前没有外部 API 或密钥。未来可复制 `apps/demo/.env.example` 为 `apps/demo/.env.local`，本地设置 `VITE_API_BASE_URL`；线上在 Pages 项目的环境变量中设置公开 API 地址。秘密密钥只留在后端环境变量，所有 `VITE_*` 都会暴露给浏览器。模板不包含真实凭据。
+
+## 其他工程
+
+仓库还保留原有北京 LIVERSE 微信小程序、NestJS API、图片 Worker 与 React 运营后台。它们独立于公开 Demo。
 
 ## 本地运行
 
@@ -34,19 +79,9 @@ pnpm dev
 
 运行 `pnpm build:guest` 生成单个 HTML 文件 `dist/guest/index.html`。可直接把文件发给体验者，用支持 WebGL 的桌面浏览器打开即可离线体验。要给手机用户发一个可直接点开的链接，把同一个文件上传到普通 HTTPS 静态托管即可。运行 `pnpm serve:guest` 可在 [本机预览](http://127.0.0.1:4174/)。
 
-访客可以在两层北京示例排座中选座、查看 3D 坐姿和站姿、对比两个位置，以及在浏览器中收藏。网页托管后可分享指定座位的链接。体验使用程序生成的座位和舞台示意，全程无需飞书、微信账号或后端服务。
+访客可以在两层北京示例排座中选座、查看 3D 坐姿和站姿、对比两个位置，以及在浏览器中收藏。网页托管后可分享指定座位的链接。体验使用程序生成的座位和舞台示意，全程无需账号或后端服务。
 
 `pnpm test:guest` 在桌面和手机浏览器视口验证离线文件与静态网页。
-
-## 独立体验 Demo
-
-[免登录线上体验](https://miracleplus.feishu.link/app/app_17gv6eymhad)，可直接转发给他人。2026-10-27 已验证桌面／手机流程；参考图片签名最早于北京时间 2026-11-26 10:03 到期，届时需续签并发布。完整发布信息见 `infra/demo-hosting.json` 与实施记录。
-
-不需要数据库、微信登录或运营账号。先运行 `pnpm build:demo`，再运行 `pnpm demo`，打开 [体验版](http://127.0.0.1:4173/)。同一局域网的其他设备可使用运行电脑的内网 IP 和 4173 端口访问；需要防火墙允许该端口。外网用户需要将 `dist/demo/index.html` 与 `dist/demo/assets/` 部署到 HTTPS 静态托管服务。
-
-`dist/demo` 包含免依赖的 Node.js 静态服务器与 Windows 启动脚本，可打包转发。体验内容包括两层示例排座、3D 环顾与坐站姿、两个位置对比、本机收藏和位置分享。座位与模型均为开发示例；图片保留来源说明。无后台、上传或数据库接口，正式微信功能仍使用原生小程序。
-
-验证：`pnpm test:demo` 在桌面和手机视口验证无需 API 的完整体验、分享、收藏持久化和静态服务访问边界。
 
 ## 微信开发者工具
 
@@ -77,6 +112,8 @@ Remove-Item Env:ADMIN_PASSWORD
 ```powershell
 pnpm test
 pnpm build
+pnpm build:demo
+pnpm test:demo
 pnpm test:e2e
 pnpm audit --audit-level=low
 ```
@@ -88,6 +125,7 @@ pnpm audit --audit-level=low
 - `apps/miniprogram`：原生 TypeScript、WXML、WXSS 页面与微信能力封装。
 - `apps/api`：公开／个人／运营 API、Prisma 迁移、私有媒体处理及 Worker。
 - `apps/admin`：内容审核、官方资料录入、布局发布、工单和操作记录。
+- `apps/demo`：单独安装、构建和部署的公开上海 Demo。
 - `packages/contracts`、`packages/venue-core`：共享校验、位置、坐标、对比与相机计算。
 - `packages/venue-renderer`：Three.js r133 示例场景与渲染生命周期。
 - `fixtures`：仅开发使用的示例布局。

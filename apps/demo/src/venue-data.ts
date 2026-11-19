@@ -1,4 +1,5 @@
-import placement from "../../../docs/data/shanghai-3d-placement-estimate.json";
+import placement from "./mock/shanghai-3d-placement-estimate.json";
+import mock from "./mock/shanghai.json";
 
 export type Floor = "1F" | "2F";
 export type CameraMode = "场馆总览" | "观众视角" | "手机取景";
@@ -19,24 +20,15 @@ export const modelSeats: ModelSeat[] = placement.seats.map((seat) => ({
   number: seat.number,
   position: seat.position_m as [number, number, number],
   yaw: seat.yaw_rad,
-  obstructed: seat.obstructed_2f_source_mark || (seat.floor === "1F" && seat.row >= 20),
+  obstructed: seat.obstructed_2f_source_mark || (seat.floor === "1F" && seat.row >= mock.model.obstructed1FFirstRow),
 }));
+export const modelSeatCounts = {
+  "1F": modelSeats.filter((seat) => seat.floor === "1F").length,
+  "2F": modelSeats.filter((seat) => seat.floor === "2F").length,
+};
 
 export function findModelSeat(ref: SeatRef | null) {
   return ref ? modelSeats.find((seat) => seat.floor === ref.floor && seat.row === ref.row && seat.number === ref.number) : undefined;
 }
 
-export const modelSpec = {
-  floorWidth: 29.05,
-  floorDepth: 29.58,
-  stageHeight: 1.5,
-  stageDepth: 9,
-  stageWidths: [20, 17, 13],
-  screenWidth: 33.28,
-  screenHeight: 12,
-  screenBottom: 2,
-  // Installation curve and viewer eye height remain adjustable prototype assumptions.
-  screenRadius: 15,
-  eyeHeight: 1.2,
-  target: [0, 3.6, -4.5] as [number, number, number],
-};
+export const modelSpec = { ...mock.model, target: mock.model.target as [number, number, number] };

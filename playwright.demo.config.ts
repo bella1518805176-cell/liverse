@@ -4,7 +4,7 @@ export default defineConfig({
   workers: 1,
   timeout: 45000,
   use: {
-    baseURL: process.env.DEMO_BASE_URL ?? "http://127.0.0.1:4173",
+    baseURL: process.env.DEMO_BASE_URL ?? "http://127.0.0.1:4183/",
     launchOptions: {
       channel: "chrome",
       args: [
@@ -26,8 +26,8 @@ export default defineConfig({
   webServer: process.env.DEMO_BASE_URL
     ? undefined
     : {
-        command: "pnpm demo",
-        url: "http://127.0.0.1:4173",
-        reuseExistingServer: !process.env.CI,
+        command: "npm --prefix apps/demo run preview -- --port 4183",
+        url: "http://127.0.0.1:4183/",
+        reuseExistingServer: false,
       },
 });

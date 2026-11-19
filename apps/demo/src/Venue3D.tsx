@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Minus, Plus, RotateCcw, Scan } from "lucide-react";
 import { createVenueScene, type VisibleFloor } from "./venue-scene";
-import { findModelSeat, type CameraMode, type ModelSeat, type SeatRef } from "./venue-data";
+import { findModelSeat, modelSeatCounts, type CameraMode, type ModelSeat, type SeatRef } from "./venue-data";
 
 type Props = { mode: CameraMode; selected: SeatRef | null; position: string; onSelect: (seat: ModelSeat) => void; onChoose: () => void; onMap: () => void };
 
@@ -36,7 +36,7 @@ export default function Venue3D({ mode, selected, position, onSelect, onChoose, 
     <div className="venue-scene-wrap" data-mode={mode}>
       <canvas key={attempt} ref={canvas} className="venue-canvas" tabIndex={0} aria-label="上海 LIVERSE 三维场馆；拖动旋转，双指或滚轮缩放，可在总览点击座位" />
       <div className="scene-topline"><span>SHANGHAI / LIVERSE</span><span className="model-badge">尺寸估算模型</span></div>
-      <div className="scene-heading"><p className="scene-title">{mode}</p><p>{audience && modelSeat ? `${modelSeat.floor} · ${modelSeat.row}排 ${modelSeat.number}号` : "1F 800 座 · 2F 408 座"}</p></div>
+      <div className="scene-heading"><p className="scene-title">{mode}</p><p>{audience && modelSeat ? `${modelSeat.floor} · ${modelSeat.row}排 ${modelSeat.number}号` : `1F ${modelSeatCounts["1F"]} 座 · 2F ${modelSeatCounts["2F"]} 座`}</p></div>
       {!audience && !error && <div className="model-layers" aria-label="模型楼层显示">
         {(["all", "1F", "2F"] as const).map((floor) => <button key={floor} aria-pressed={visibleFloor === floor} className={visibleFloor === floor ? "active" : ""} onClick={() => setVisibleFloor(floor)}>{floor === "all" ? "全馆" : `仅看 ${floor}`}</button>)}
       </div>}
