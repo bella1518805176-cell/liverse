@@ -105,6 +105,13 @@
   height: 100%;
   object-fit: cover;
 }
+.p-guest-hero {
+  background:
+    radial-gradient(ellipse at 52% 90%, #e15828 0%, transparent 55%),
+    linear-gradient(65deg, transparent 37%, #e98d5944 50%, transparent 60%),
+    linear-gradient(115deg, transparent 39%, #e2633044 50%, transparent 62%),
+    #181923;
+}
 .p-hero:after {
   content: "";
   position: absolute;

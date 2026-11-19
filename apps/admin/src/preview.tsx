@@ -48,6 +48,13 @@ function readLocal(key: string): PositionRef[] {
     return [];
   }
 }
+function writeLocal(key: string, positions: PositionRef[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(positions));
+  } catch {
+    // The current session still works when the browser blocks local storage.
+  }
+}
 function IconButton({
   label,
   children,
@@ -72,12 +79,14 @@ function IconButton({
 }
 export function PreviewApp({
   demoLayout,
+  guest = false,
   images = {
     live: "/assets/beijing-live.jpg",
     balcony: "/assets/beijing-balcony.jpg",
   },
 }: {
   demoLayout?: Layout;
+  guest?: boolean;
   images?: { live: string; balcony: string };
 } = {}) {
   const [tab, setTab] = useState<Tab>("home"),
@@ -102,6 +111,7 @@ export function PreviewApp({
     [showSaved, setShowSaved] = useState(false),
     [contents, setContents] = useState<PublicContent[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const canShare = location.protocol === "https:" || location.protocol === "http:";
   const notify = (text: string) => {
     setToast(text);
     if (timer.current) clearTimeout(timer.current);
@@ -179,7 +189,7 @@ export function PreviewApp({
       ...recent.filter((r) => positionKey(r) !== positionKey(p)),
     ].slice(0, 20);
     setRecent(next);
-    localStorage.setItem("lv:preview:recent", JSON.stringify(next));
+    writeLocal("lv:preview:recent", next);
     navigate("view");
   }
   function favorite(p: PositionRef) {
@@ -188,7 +198,7 @@ export function PreviewApp({
       ? favorites.filter((f) => positionKey(f) !== positionKey(p))
       : [p, ...favorites];
     setFavorites(next);
-    localStorage.setItem("lv:preview:favorites", JSON.stringify(next));
+    writeLocal("lv:preview:favorites", next);
     notify(has ? "已取消本机收藏" : "已保存到本机收藏");
   }
   function add(p: PositionRef) {
@@ -256,15 +266,17 @@ export function PreviewApp({
           <>
             {tab === "home" && (
               <>
-                <section className="p-hero">
-                  <img src={images.live} alt="北京 LIVERSE 宣传资料现场画面" />
+                <section className={guest ? "p-hero p-guest-hero" : "p-hero"}>
+                  {!guest && (
+                    <img src={images.live} alt="北京 LIVERSE 宣传资料现场画面" />
+                  )}
                   <div className="p-hero-overlay">
                     <span className="p-kicker">BEIJING · LIVE SPACE</span>
                     <h1>LIVERSE 北京</h1>
-                    <p>属于你的现场，从这里看见。</p>
+                    <p>{guest ? "选一个座位，看看舞台。" : "属于你的现场，从这里看见。"}</p>
                   </div>
                   <span className="p-photo-credit">
-                    场馆宣传资料 · 非座位实拍
+                    {guest ? "舞台示意" : "场馆宣传资料 · 非座位实拍"}
                   </span>
                 </section>
                 <section className="p-section">
@@ -303,21 +315,23 @@ export function PreviewApp({
                     <div className="p-empty">场馆资料准备中</div>
                   )}
                 </section>
-                <section className="p-section">
-                  <div className="p-heading">
-                    <h2>现场的另一种视角</h2>
-                    <button
-                      className="p-text"
-                      onClick={() => navigate("photos")}
-                    >
-                      查看实拍 <ArrowUpRight size={16} />
-                    </button>
-                  </div>
-                  <div className="p-reference">
-                    <img src={images.balcony} alt="场馆宣传资料二层座席区" />
-                    <span>场馆参考 · 二层座席区</span>
-                  </div>
-                </section>
+                {!guest && (
+                  <section className="p-section">
+                    <div className="p-heading">
+                      <h2>现场的另一种视角</h2>
+                      <button
+                        className="p-text"
+                        onClick={() => navigate("photos")}
+                      >
+                        查看实拍 <ArrowUpRight size={16} />
+                      </button>
+                    </div>
+                    <div className="p-reference">
+                      <img src={images.balcony} alt="场馆宣传资料二层座席区" />
+                      <span>场馆参考 · 二层座席区</span>
+                    </div>
+                  </section>
+                )}
                 {recent.length > 0 && layout && (
                   <section className="p-section">
                     <div className="p-heading">
@@ -499,41 +513,45 @@ export function PreviewApp({
                     >
                       <Bookmark size={20} />
                     </IconButton>
-                    <IconButton
-                      label="分享位置"
-                      onClick={async () => {
-                        const url = new URL(location.href);
-                        url.hash = encodeURIComponent(JSON.stringify(selected));
-                        try {
-                          await navigator.clipboard.writeText(url.href);
-                          notify("位置链接已复制");
-                        } catch {
-                          if (navigator.share) {
-                            try {
-                              await navigator.share({
-                                title: "LIVERSE · 观演视野",
-                                url: url.href,
-                              });
-                            } catch {
-                              notify("分享已取消");
+                    {canShare && (
+                      <IconButton
+                        label="分享位置"
+                        onClick={async () => {
+                          const url = new URL(location.href);
+                          url.hash = encodeURIComponent(JSON.stringify(selected));
+                          try {
+                            await navigator.clipboard.writeText(url.href);
+                            notify("位置链接已复制");
+                          } catch {
+                            if (navigator.share) {
+                              try {
+                                await navigator.share({
+                                  title: "LIVERSE · 观演视野",
+                                  url: url.href,
+                                });
+                              } catch {
+                                notify("分享已取消");
+                              }
+                            } else {
+                              setShareUrl(url.href);
                             }
-                          } else {
-                            setShareUrl(url.href);
                           }
-                        }
-                      }}
-                    >
-                      <Share2 size={19} />
-                    </IconButton>
+                        }}
+                      >
+                        <Share2 size={19} />
+                      </IconButton>
+                    )}
                   </div>
                 </section>
-                <section className="p-section">
-                  <div className="p-heading">
-                    <h2>这个位置的实拍</h2>
-                    <Camera size={18} />
-                  </div>
-                  <div className="p-empty compact">暂无匹配的已核验实拍</div>
-                </section>
+                {!guest && (
+                  <section className="p-section">
+                    <div className="p-heading">
+                      <h2>这个位置的实拍</h2>
+                      <Camera size={18} />
+                    </div>
+                    <div className="p-empty compact">暂无匹配的已核验实拍</div>
+                  </section>
+                )}
               </>
             )}
             {tab === "compare" && layout && (
@@ -545,7 +563,7 @@ export function PreviewApp({
                   </button>
                   <h1 className="p-page-title">同一个舞台，两种视角</h1>
                   <p className="p-muted">
-                    同版本模型使用相同基准。实拍条件不同，分别浏览。
+                    {guest ? "切换位置，比较舞台视野。" : "同版本模型使用相同基准。实拍条件不同，分别浏览。"}
                   </p>
                   <div className="p-compare-tabs">
                     {compare.map((p, i) => (
@@ -703,7 +721,9 @@ export function PreviewApp({
                   ))
                 )}
                 <div className="p-source">
-                  本机记录保存在当前浏览器。微信账号、投稿与个人工单请在原生小程序中使用。
+                  {guest
+                    ? "收藏和浏览记录仅保存在当前浏览器。"
+                    : "本机记录保存在当前浏览器。微信账号、投稿与个人工单请在原生小程序中使用。"}
                 </div>
                 <button
                   className="p-secondary p-wide"
@@ -723,7 +743,7 @@ export function PreviewApp({
                 { key: "photos", label: "实拍", Icon: Camera },
                 { key: "me", label: "我的", Icon: UserRound },
               ] as const
-            ).map(({ key, label, Icon }) => (
+            ).filter(({ key }) => !guest || key !== "photos").map(({ key, label, Icon }) => (
               <button
                 key={key}
                 className={tab === key ? "active" : ""}
