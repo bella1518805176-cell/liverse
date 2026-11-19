@@ -209,7 +209,14 @@ test("entry page matches the hero flow and its actions open the existing section
   await page.goto("./");
   await expect(page.locator(".landing-shell")).toBeVisible();
   await expect(page.getByRole("heading", { name: "属于你的现场，从这里看见" })).toBeVisible();
-  await expect(page.locator(".landing-logo")).toHaveAttribute("src", "/assets/liverse-logo-reference.png");
+  await expect.poll(() => page.locator(".landing-logo").evaluate((node: HTMLImageElement) => node.naturalWidth)).toBeGreaterThan(0);
+  const heroImage = await page.locator(".landing-shell").evaluate((node) => {
+    return getComputedStyle(node, "::before").backgroundImage.match(/url\("([^"]+)"\)/)?.[1];
+  });
+  expect(heroImage).toBeTruthy();
+  const hero = await page.request.get(heroImage!);
+  expect(hero.ok()).toBe(true);
+  expect(hero.headers()["content-type"]).toContain("image/");
   expect(await page.locator(".landing-shell").evaluate((node) => node.clientHeight)).toBe(await page.evaluate(() => innerHeight));
   await page.screenshot({ path: `test-results/hero-entry-${testInfo.project.name}.png` });
   await page.getByRole("button", { name: "进入在现场" }).click();
